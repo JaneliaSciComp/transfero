@@ -38,7 +38,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # Delete the destination folder
     if os.path.exists(transfero_destination_folder_path) :
-        system2(['rm', '-rf', transfero_destination_folder_path]) 
+        run_subprocess_live(['rm', '-rf', transfero_destination_folder_path]) 
 
     # # Recopy the analysis test folder from the template
     # print('Resetting analysis test folder...\n') 
@@ -47,14 +47,15 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # Copy it to the rig computer (or just direct to the destination folder)
     if do_transfer_data_from_rigs :
-        print('Transfering data to the rig computer...\n')  
+        print('Transfering data to the rig computer...')  
         command_line = 'scp -B -r %s/* %s@%s:%s' % (read_only_example_experiments_folder_path, rig_user_name, rig_host_name, rig_data_folder_path)
-        system2(command_line, shell=True) 
+        run_subprocess_live(command_line, shell=True) 
+        print('Done transfering data to the rig computer.')  
     else :
-        print('Transfering data to the destination path...\n') 
+        print('Transfering data to the destination path...') 
         os.makedirs(os.path.dirname(transfero_destination_folder_path), exist_ok=True )
         command_line = ['cp', '-R', '-T', read_only_example_experiments_folder_path, transfero_destination_folder_path] 
-        system2(command_line)   
+        run_subprocess_live(command_line)   
         # Should make transfero_destination_folder_path a clone of
         # example_experiments_folder_path, since we use -T option
 
@@ -66,11 +67,12 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
         for i in range(experiment_count) : 
             experiment_folder_path = folder_path_from_experiment_index[i] 
             command_line = {'ln', '-s', experiment_folder_path, to_process_folder_path} 
-            system2(command_line) 
+            run_subprocess_live(command_line) 
+        print('Done transfering data to the destination path.') 
  
     # Run transfero
     #analysis_parameters = { 'doautomaticcheckscomplete', 'on' } 
-    print('Running transfero...\n') 
+    print('Running transfero...') 
     transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
 
     # Check that the expected files are present on dm11
@@ -90,14 +92,14 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # Check that the rig lab folder is empty now
     if do_transfer_data_from_rigs :
-        relative_path_from_experiment_folder_index = \
+        (relative_path_from_experiment_folder_index, _) = \
             find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path, 'to-process')
         experiment_folder_count = len(relative_path_from_experiment_folder_index)
         if experiment_folder_count > 0 :
-            print("Experiment(s) that still exist on the remote machine:\n")
+            print("Experiment(s) that still exist on the remote machine:")
             map(lambda path: print("  %s\n", path), relative_path_from_experiment_folder_index)
-            raise Exception('Rig lab data folder %s:%s seems to still contain %d experiments' % 
-                            (rig_host_name, rig_data_folder_path, experiment_folder_count))
+            raise RuntimeError('Rig lab data folder %s:%s seems to still contain %d experiments' % 
+                               (rig_host_name, rig_data_folder_path, experiment_folder_count))
 
     # Run transfero again, make sure nothing has changed
     transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
@@ -117,7 +119,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # Check that the rig lab folder is empty now
     if do_transfer_data_from_rigs :
-        relative_path_from_experiment_folder_index = \
+        (relative_path_from_experiment_folder_index, _) = \
             find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path, 'to-process')
         experiment_folder_count = len(relative_path_from_experiment_folder_index)
         if experiment_folder_count > 0 :
@@ -128,7 +130,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # If get here, all is well
     this_script_name = os.path.basename(this_script_path) 
-    print('All tests in %s.m passed.\n' % this_script_name)
+    print('All tests in %s.m passed.' % this_script_name)
 # end of test_transfero()
 
 

@@ -8,7 +8,7 @@ import time
 import subprocess
 import shlex
 import io
-
+import traceback
 
 
 class cd:
@@ -32,7 +32,7 @@ def listmap(f, lst) :
 
 def get_git_report(source_repo_folder_path) :
     with cd(source_repo_folder_path) as _ :
-        # Get the matalb version
+        # Get the Python version
         python_ver_string = sys.version
         
         # This is hard to get working in a way that overrides
@@ -42,20 +42,21 @@ def get_git_report(source_repo_folder_path) :
         # system_with_error_handling('env GIT_SSL_NO_VERIFY=true GIT_TERMINAL_PROMPT=0 git remote update')     
         
         # Get the git hash
-        cp = system2(['/usr/bin/env', 'GIT_SSL_NO_VERIFY=true', 'GIT_TERMINAL_PROMPT=0', '/usr/bin/git', 'rev-parse', '--verify', 'HEAD'])         
-        commit_hash = cp.stdout.strip()
+        so = run_subprocess_and_return_stdout(
+                ['/usr/bin/env', 'GIT_SSL_NO_VERIFY=true', 'GIT_TERMINAL_PROMPT=0', '/usr/bin/git', 'rev-parse', '--verify', 'HEAD'])
+        commit_hash = so.strip()
 
         # Get the git remote report
-        cp2 = system2('env GIT_SSL_NO_VERIFY=true GIT_TERMINAL_PROMPT=0 git remote -v')     
-        git_remote_report = cp2.stdout
+        git_remote_report = run_subprocess_and_return_stdout(
+            ['/usr/bin/env', 'GIT_SSL_NO_VERIFY=true', 'GIT_TERMINAL_PROMPT=0', '/usr/bin/git',  'remote',  '-v'])     
 
         # Get the git status
-        cp3 = system2('env GIT_SSL_NO_VERIFY=true GIT_TERMINAL_PROMPT=0 git status')     
-        git_status = cp3.stdout
+        git_status = run_subprocess_and_return_stdout(
+            ['/usr/bin/env', 'GIT_SSL_NO_VERIFY=true', 'GIT_TERMINAL_PROMPT=0', '/usr/bin/git', 'status'])     
         
         # Get the recent git log
-        cp4 = system2('env GIT_SSL_NO_VERIFY=true GIT_TERMINAL_PROMPT=0 git log --graph --oneline --max-count 10 | cat') 
-        git_log = cp4.stdout
+        git_log = run_subprocess_and_return_stdout(
+            ['/usr/bin/env', 'GIT_SSL_NO_VERIFY=true', 'GIT_TERMINAL_PROMPT=0', '/usr/bin/git', 'log', '--graph', '--oneline', '--max-count', '10']) 
             
     # Package everything up into a string
     breadcrumb_string = 'Python version:\n%s\n\nSource repo:\n%s\n\nCommit hash:\n%s\n\nRemote info:\n%s\n\nGit status:\n%s\n\nGit log:\n%s\n\n' % \
@@ -70,18 +71,87 @@ def get_git_report(source_repo_folder_path) :
 
 
 
-def system2(command_as_list, check=True, shell=False) :
+def run_subprocess_and_return_stdout(command_as_list, shell=False) :
+    completed_process = \
+        subprocess.run(command_as_list, 
+                       capture_output=True,
+                       text=True,
+                       encoding='utf-8',
+                       check=True, 
+                       shell=shell)
+    stdout = completed_process.stdout
+    #print('Result: %s' % result)                   
+    return stdout
+
+
+
+def run_subprocess_and_return_code_and_stdout(command_as_list, shell=False) :
+    completed_process = \
+        subprocess.run(command_as_list, 
+                       capture_output=True,
+                       text=True,
+                       encoding='utf-8',
+                       check=False, 
+                       shell=shell)
+    stdout = completed_process.stdout
+    return_code = completed_process.returncode
+    #print('Result: %s' % result)                   
+    return (return_code, stdout)
+
+
+
+def run_subprocess_and_return_code(command_as_list, shell=False) :
+    completed_process = \
+        subprocess.run(command_as_list, 
+                       check=False, 
+                       shell=shell)
+    return_code = completed_process.returncode
+    #print('Result: %s' % result)                   
+    return return_code
+
+
+
+def run_subprocess_live_and_return_stdouterr(command_as_list, check=True, shell=False) :
     '''
-    Call an external executable, with live display of the output
+    Call an external executable, with live display of the output.  
+    Return stdout+stderr as a string.
     '''
-    with subprocess.Popen(command_as_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True, shell=shell) as p, io.StringIO() as buf:
+    with subprocess.Popen(command_as_list, 
+                          stdout=subprocess.PIPE, 
+                          stderr=subprocess.STDOUT, 
+                          bufsize=1, 
+                          text=True, 
+                          encoding='utf-8', 
+                          shell=shell) as p, io.StringIO() as buf:
         for line in p.stdout :
             print(line, end='')
             buf.write(line)
-    if check :
-        if p.returncode != 0 :
-            raise Exception("Running %s returned a non-zero return code: %d" % (str(command_as_list), p.returncode))
-    return p
+        p.communicate()  # Seemingly needed to make sure returncode is set.  
+                         # Hopefully will not deadlock b/c we've already 
+                         # exhausted stdout.
+        return_code = p.returncode
+        if check :
+            if return_code != 0 :
+                raise RuntimeError("Running %s returned a non-zero return code: %d" % (str(command_as_list), return_code))
+        stdouterr = buf.getvalue()     
+    return (stdouterr, return_code)
+
+
+
+def run_subprocess_live(command_as_list, check=True, shell=False) :
+    '''
+    Call an external executable, with live display of the output.
+    '''
+    with subprocess.Popen(command_as_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, text=True, encoding='utf-8', shell=shell) as p, io.StringIO() as buf:
+        for line in p.stdout :
+            print(line, end='')
+            buf.write(line)
+        p.communicate()  # Seemingly needed to make sure returncode is set.  Hopefully will not deadlock b/c we've already exhausted stdout.    
+        return_code = p.returncode
+        if check :
+            if return_code != 0 :
+                raise RuntimeError("Running %s returned a non-zero return code: %d" % (str(command_as_list), return_code))
+    return return_code
 
 
 
@@ -149,15 +219,14 @@ def does_remote_file_exist(user_name, host_name, path) :
     escaped_source_path = shlex.quote(path) 
     remote_stat_command_line = 'test -a ' + escaped_source_path 
     command_line_as_list = ['/usr/bin/ssh', user_name+'@'+host_name, remote_stat_command_line] ;
-    completed_process = system2(command_line_as_list, check=False)
-    return_code = completed_process.returncode
+    [return_code, stdout] = run_subprocess_and_return_code_and_stdout(command_line_as_list)
     if return_code == 0 :
         does_exist = True 
     elif return_code == 1 :
         does_exist = False 
     else :
         raise Exception('Ambiguous result from "%s": Not clear if file/folder %s exists or not on host %s.  Return code is %d.  stdout is:\n%s' %
-                        str(command_line_as_list), path, host_name, return_code, completed_process.stdout) ;
+                        str(command_line_as_list), path, host_name, return_code, stdout) ;
     return does_exist
 
 
@@ -215,15 +284,14 @@ class spinner_object :
 
 
 def compute_md5_on_remote(source_user, source_host, source_path) :
-    escaped_source_path = shlex.escape(source_path) 
+    escaped_source_path = shlex.quote(source_path) 
     host_spec = source_user + '@' + source_host
     remote_command_line = '/usr/bin/md5sum %s' % escaped_source_path
     command_line = ['/usr/bin/ssh', host_spec, remote_command_line]
-    cp = system2(command_line, check=False) 
-    return_code = cp.returncode
-    stdout = cp.stdout
-    if return_code != 0 :
-        raise RuntimeError('Unable to md5sum the file %s as user %s on host %s' % (source_path, source_user, source_host)) 
+    #[stdout, return_code] = run_subprocess_live_and_return_stdouterr(command_line, check=False) 
+    #if return_code != 0 :
+    #    raise RuntimeError('Unable to md5sum the file %s as user %s on host %s' % (source_path, source_user, source_host)) 
+    stdout = run_subprocess_and_return_stdout(command_line) 
     tokens = stdout.strip().split()
     if isempty(tokens) :
         raise RuntimeError('Got a weird result while md5sum''ing the file %s as user %s on host %s.  Result was: %s' %
@@ -235,11 +303,7 @@ def compute_md5_on_remote(source_user, source_host, source_path) :
 
 def compute_md5_on_local(local_path) :
     command_line = [ '/usr/bin/md5sum', local_path ]
-    cp = system2(command_line, check=False) 
-    return_code = cp.returncode
-    stdout = cp.stdout
-    if return_code != 0 :
-        raise RuntimeError('Unable to md5sum the file %s.  Stdout/stderr was:\n%s' % (local_path, stdout)) 
+    stdout = run_subprocess_and_return_stdout(command_line)
     tokens = stdout.strip().split()
     if isempty(tokens) :
         raise RuntimeError('Got a weird result while md5sum''ing the file %s.  Stdout/stderr was:\n%s' % (local_path, stdout))
@@ -249,26 +313,24 @@ def compute_md5_on_local(local_path) :
 
 
 def copy_file_from_remote(source_user, source_host, source_path, dest_path) :
-    #escaped_source_path = shlex.escape(source_path) 
-    #escaped_dest_path = shlex.escape(dest_path) 
+    #escaped_source_path = shlex.quote(source_path) 
+    #escaped_dest_path = shlex.quote(dest_path) 
     source_spec = source_user + '@' + source_host + ':' + source_path
     start_time = time.time()
-    command_line = [ '/usr/bin/scp', '-v', '-B', '-T', source_spec, dest_path ]
-    cp = system2(command_line, check=False) 
-    scp_return_code = cp.returncode
-    stdout = cp.stdout
+    command_line = [ '/usr/bin/scp', '-B', '-T', source_spec, dest_path ]
+    [scp_return_code, scp_stdout] = run_subprocess_and_return_code_and_stdout(command_line) 
     # scp doesn't honor the user's umask, so we need to set the file
     # permissions explicitly
     if scp_return_code == 0:
         command_line = [ '/bin/chmod', 'u+rw-x,g+rw-x,o+r-wx', dest_path ]
-        [chmod_return_code, stdout] = system2(command_line) 
+        [chmod_return_code, chmod_stdout] = run_subprocess_and_return_code_and_stdout(command_line) 
     elapsed_time = time.time() - start_time
     if scp_return_code != 0 :
         raise CopyFileFromRemoteFailedError('Unable to copy the file %s as remote user %s from host %s to destination %s:\n%s' %
-                                            (source_path, source_user, source_host, dest_path, stdout) ) 
+                                            (source_path, source_user, source_host, dest_path, scp_stdout) ) 
     elif chmod_return_code != 0 :
         raise CopyFileFromRemoteFailedError('Unable to set the permissions of %s after copy:\n%s' %
-                                            (dest_path, stdout) ) 
+                                            (dest_path, chmod_stdout) ) 
     return elapsed_time
 
 
@@ -299,10 +361,15 @@ def list_remote_dir(source_user, source_host, source_path) :
     escaped_source_path = shlex.quote(source_path) 
     remote_ls_command_line = 'ls -l -A -U -Q --full-time -- ' + escaped_source_path
     command_line_as_list = ['/usr/bin/ssh', source_user+'@'+source_host, remote_ls_command_line ]
-    completed_process = system2(command_line_as_list, check=False) 
+    completed_process = \
+        subprocess.run(command_line_as_list, 
+                       capture_output=True,
+                       text=True,
+                       encoding='utf-8',
+                       check=False)
     if completed_process.returncode != 0 :
         raise UnableToListDirectoryError('Unable to list the directory %s as user %s on host %s' % (source_path, source_user, source_host))
-    lines_raw = completed_process.stdout.stip().splitlines()
+    lines_raw = completed_process.stdout.strip().splitlines()
     lines = lines_raw[1:]  # drop 1st line
     line_count = len(lines) 
     file_names = [None] * line_count
@@ -345,12 +412,12 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
     # Get a list of all files and folders
     parent_absolute_path = os.path.join(root_absolute_path, parent_relative_path) 
     try :
-        (entries, _, _, is_entry_a_folder, _) = \
+        (entries, _, _, is_entry_a_folder, _, _) = \
             list_remote_dir(user_name, host_name, parent_absolute_path) 
     except UnableToListDirectoryError as e :
         # if we can't list the dir, warn but continue
         spinner.print("Warning: can't list path %s on host %s as user %s" % (parent_absolute_path, host_name, user_name)) 
-        spinner.print("%s", str(e)) 
+        spinner.print(str(e)) 
         return (relative_path_from_experiment_index, is_aborted_from_experiment_index)
     spinner.spin() ;
 
@@ -365,13 +432,14 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
             spinner.print("Warning: found an experiment folder with relative path %s.  Can't synch because that's the path to the to-process folder" %
                           parent_absolute_path) 
         else :           
-            is_aborted_from_experiment_index = ('ABORTED' in file_names)
+            is_aborted_from_experiment_index = [ ('ABORTED' in file_names) ]
             relative_path_from_experiment_index = [parent_relative_path] 
     else :
         # For each folder, recurse
         relative_path_from_experiment_index = [] 
         is_aborted_from_experiment_index = [] 
-        for i in range(folder_names) :
+        folder_name_count = len(folder_names)
+        for i in range(folder_name_count) :
             folder_name = folder_names[i]
             (relative_path_from_child_experiment_index, is_aborted_from_child_experiment_index) = \
                  find_remote_experiment_folders_helper(user_name, 
@@ -420,11 +488,10 @@ def delete_remote_folder(remote_user_name, remote_dns_name, remote_folder_path) 
     if isempty(trimmed_remote_folder_path) or trimmed_remote_folder_path=='/' :
         raise RuntimeError('Yeah, I''m not going to rm -rf / on %s' % remote_dns_name) 
     
-    escaped_remote_folder_path = shlex.escape(remote_folder_path) 
-    remote_command_line = '/bin/rm %s' % escaped_remote_folder_path
+    escaped_remote_folder_path = shlex.quote(remote_folder_path) 
+    remote_command_line = '/bin/rm -rf %s' % escaped_remote_folder_path
     command_line_as_list = ['/usr/bin/ssh',  remote_user_name+'@'+remote_dns_name, remote_command_line]
-    p = system2(command_line_as_list, check=False) 
-    return_code = p.returncode
+    return_code = run_subprocess_and_return_code(command_line_as_list) 
     if return_code != 0 :
         raise RuntimeError('Unable to delete the folder %s as user %s on host %s' %
                            (remote_folder_path, remote_user_name, remote_dns_name)) 
@@ -459,7 +526,7 @@ def add_links_to_to_process_folder(destination_folder, to_process_folder_name, r
         experiment_folder_relative_path = relative_path_from_experiment_folder_index[i] 
         experiment_folder_absolute_path = os.path.join(destination_folder, experiment_folder_relative_path) 
         command_line = [ '/bin/ln', '-s', experiment_folder_absolute_path, to_process_folder_path ]
-        system2(command_line) 
+        run_subprocess_live(command_line) 
 
 
 
@@ -561,12 +628,13 @@ def remote_verify_helper(source_user, source_host, source_parent_path, dest_pare
         source_file_path = os.path.join(source_parent_path, file_name) 
         dest_file_path = os.path.join(dest_parent_path, file_name)         
         source_file_size = size_from_source_file_index[source_file_index]
-        dest_file_index = argfilter(lambda dest_name: (dest_name==file_name), name_from_dest_file_index)
-        match_count = len(dest_file_index)
+        dest_file_indices = argfilter(lambda dest_name: (dest_name==file_name), name_from_dest_file_index)
+        match_count = len(dest_file_indices)
         if match_count==0 :
             raise RuntimeError("There is a problem with destination file %s: It's missing." % dest_file_path) 
         elif match_count==1 :
             # this is the happy path
+            dest_file_index = dest_file_indices[0]
             dest_file_size = size_from_dest_file_index[dest_file_index]
             spinner.spin() 
             if dest_file_size == source_file_size :
@@ -700,8 +768,10 @@ def remote_sync_helper(source_user, \
         dest_file_path = os.path.join(dest_parent_path, file_name) 
         spinner.spin() 
         #print("  %s" % source_file)
-        dest_file_index = argfilter(lambda dest_file_name: dest_file_name==file_name, dest_file_names)
-        if isladen(dest_file_index) :
+        dest_file_indices = argfilter(lambda dest_file_name: dest_file_name==file_name, dest_file_names)
+        match_count = len(dest_file_indices)
+        if isladen(dest_file_indices) :
+            dest_file_index = dest_file_indices[0]
             source_file_size = source_file_sizes[i] 
             dest_file_size = size_from_dest_file_index[dest_file_index]
             if dest_file_size == source_file_size :
@@ -746,7 +816,7 @@ def remote_sync_helper(source_user, \
     
     # need to re-generate dest dirs, because we may have failed to 
     # create some of them
-    (dest_entries, is_dest_entry_a_folder) = simple_dir(dest_parent_path) 
+    (dest_entries, is_dest_entry_a_folder, _, _) = simple_dir(dest_parent_path) 
     dest_folder_names = ibb(dest_entries, is_dest_entry_a_folder) 
     folder_names_to_recurse_into = listsetintersect(source_folder_names, dest_folder_names) 
         
@@ -900,9 +970,10 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                                    dest_folder_absolute_path) 
             did_synch_from_unaborted_experiment_folder_index[i] = True 
         except Exception as e :
-            print('There was a problem during the synch of source experiment folder\n  %s\nThe problem was:\n%s\n' % 
-                  (source_folder_absolute_path, 
-                   str(e)))     
+            print('There was a problem during the synch of source experiment folder\n  %s' % source_folder_absolute_path)
+            print(repr(e))     
+            tb = e.__traceback__
+            traceback.print_tb(tb)
 
     # print the number of experiment folders copied
     synched_experiment_folder_count = sum(did_synch_from_unaborted_experiment_folder_index) 
@@ -913,7 +984,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
         print("  %d failed to synch or verify\n" % synch_error_count) 
     
     # Delete each synched experiment folder in turn
-    relative_path_from_synched_experiment_index = relative_path_from_unaborted_experiment_folder_index(did_synch_from_unaborted_experiment_folder_index) 
+    relative_path_from_synched_experiment_index = ibb(relative_path_from_unaborted_experiment_folder_index, did_synch_from_unaborted_experiment_folder_index)
     synched_experiment_count = len(relative_path_from_synched_experiment_index) 
     did_delete_from_synched_experiment_index = [False] * synched_experiment_count 
     for i in range(unaborted_experiment_folder_count) :
@@ -924,9 +995,11 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                 delete_remote_folder(source_user_name, source_host_name, source_folder_absolute_path) 
                 did_delete_from_synched_experiment_index[i] = True 
             except Exception as e :
-                print('There was a problem during the post-synch deletion of source experiment folder\n  %s\nThe problem was:\n%s\n' %
-                      (source_folder_absolute_path, 
-                       str(e))) 
+                print('There was a problem during the post-synch deletion of source experiment folder\n  %s' %
+                      source_folder_absolute_path) 
+                print(repr(e))     
+                tb = e.__traceback__
+                traceback.print_tb(tb)
     
     # print the number of experiment folders copied
     deleted_experiment_folder_count = sum(did_delete_from_synched_experiment_index) 
@@ -946,7 +1019,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
 #     end
     
     # Return the synched experiments, whether or not they were deleted
-    relative_path_from_synched_experiment_index = relative_path_from_unaborted_experiment_folder_index[did_synch_from_unaborted_experiment_folder_index] 
+    relative_path_from_synched_experiment_index = ibb(relative_path_from_unaborted_experiment_folder_index, did_synch_from_unaborted_experiment_folder_index)
     return relative_path_from_synched_experiment_index
 # end remote_sync_verify_and_delete_experiment_folders
 
@@ -984,7 +1057,12 @@ def local_verify_helper(source_parent_path, dest_parent_path, n_files_verified, 
         source_file_path = os.path.join(source_parent_path, file_name) 
         dest_file_path = os.path.join(dest_parent_path, file_name)         
         source_file_size = size_from_source_file_index[source_file_index] 
-        dest_file_index = argfilter(lambda dest_file_name: dest_file_name==file_name, name_from_dest_file_index)
+        dest_file_indices = argfilter(lambda dest_file_name: dest_file_name==file_name, name_from_dest_file_index)
+        if len(dest_file_indices) == 0 :
+            raise RuntimeError('Internal error in local_verify_helper(): No destination file named %s' % file_name)
+        elif len(dest_file_indices) > 1 :
+            raise RuntimeError('Internal error in local_verify_helper(): More than one destination file named %s' % file_name)
+        dest_file_index = dest_file_indices[0]
         dest_file_size = size_from_dest_file_index[dest_file_index]
         spinner.spin() 
         if dest_file_size == source_file_size :
@@ -1091,7 +1169,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     print('\n') 
     print('********************************************************************************\n') 
     print('\n') 
-    print('Transfero run starting at %s\n', start_time_as_char) 
+    print('Transfero run starting at %s\n' % start_time_as_char) 
     print('\n') 
     print('********************************************************************************\n') 
     print('\n')     
@@ -1099,7 +1177,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     # Get info about the state of the repo, output to log
     source_folder_path = os.path.dirname(this_script_path)
     git_report = get_git_report(this_script_folder_path) 
-    print('%s', git_report) 
+    print(git_report) 
     
     # For each rig, copy the data over to the Janelia filesystem, and delete the
     # original data
@@ -1119,9 +1197,12 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
                                                                      to_process_folder_name)                 
                 add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_synched_experiment_folder_index) 
             except Exception as e :
-                print('There was a problem doing the sync from %s:%s as %s to %s:\n', \
-                      rig_host_name, lab_data_folder_path, rig_user_name, destination_folder) 
-                print(str(e))     
+                print('There was a problem doing the sync from %s:%s as %s to %s:' % \
+                      (rig_host_name, lab_data_folder_path, rig_user_name, destination_folder) )
+                print(repr(e))     
+                tb = e.__traceback__
+                traceback.print_tb(tb)
+
     else :
         print('Skipping transfer of data from rigs.\n') 
     
@@ -1136,7 +1217,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
         # Run the analysis script    
         # The analysis executable should return a 0 return code even if thing go wrong,
         # so that this doesn't error out
-        system2([analysis_executable_path, to_process_folder_path]) 
+        run_subprocess_live([analysis_executable_path, to_process_folder_path]) 
         
         # Whether those succeeded or failed, remove the links from the
         # to-process folder
