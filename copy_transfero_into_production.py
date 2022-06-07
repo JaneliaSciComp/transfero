@@ -38,3 +38,8 @@ def copy_transfero_into_production() :
 
     # If get here, everything went well
     printf('Successfully copied %s into all the *lab/*robot user accounts\n' % transfero_folder_path) 
+
+
+
+if __name__ == "__main__":
+    copy_transfero_into_production()
