@@ -167,7 +167,7 @@ def space_out(lst) :
     result = '' 
     count = len(lst) 
     for i in range(count) :
-        if i==1 :
+        if i==0 :
             result = lst[i] 
         else :
             result = result + ' ' + lst[i] 
