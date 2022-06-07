@@ -175,7 +175,7 @@ def space_out(lst) :
 
 
 
-def remote_system_from_list_with_error_handling(user_name, host_name, remote_command_line_as_list) :
+def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command_line_as_list) :
     '''
     Run the system command, but taking a list of tokens rather than a string, and
     running on a remote host.  Uses ssh, which needs to be set up for passowrdless
