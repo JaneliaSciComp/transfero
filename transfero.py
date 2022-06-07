@@ -395,7 +395,7 @@ def is_experiment_folder_given_contents(file_names) :
     lowercase_file_names = list(map(lambda s: s.lower(), file_names))
     # We check for three files.  If two or more are present, we consider it an
     # experiment folder
-    has_movie_file = ( ('movie.ufmf' in lowercase_file_names) or ('movie.avi' in lowercase_file_names) )
+    has_movie_file = ( ('movie.ufmf' in lowercase_file_names) or ('movie.avi' in lowercase_file_names) or ('movie_movie.ufmf' in lowercase_file_names) )
     point_count = \
         has_movie_file + \
         ('metadata.xml' in lowercase_file_names) + \
@@ -1135,7 +1135,7 @@ def local_verify(source_path, dest_path) :
 
 
 
-def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configuration=None):
+def transfero(configuration_or_configuration_file_name, do_transfer_data_from_rigs=True, do_run_analysis=True):
     '''
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1147,13 +1147,20 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     # Load the per-lab configuration file
     this_script_path = os.path.realpath(__file__)
     this_script_folder_path = os.path.dirname(this_script_path)
-    if configuration == None:
+    if configuration_or_configuration_file_name == None:
         user_name = os.getlogin()
         configuration_file_name = '%s_configuration.yml' % user_name
         configuration_file_path = os.path.join(this_script_folder_path, configuration_file_name)
         with open(configuration_file_path, 'r') as stream:
             configuration = yaml.safe_load(stream)
-    
+    elif isinstance(configuration_or_configuration_file_name, str) :
+        configuration_file_name = configuration_or_configuration_file_name
+        configuration_file_path = os.path.abspath(configuration_file_name)
+        with open(configuration_file_path, 'r') as stream:
+            configuration = yaml.safe_load(stream)
+    else:
+        configuration = configuration_or_configuration_file_name
+
     # Unpack the per-lab configuration dict
     #cluster_billing_account_name = configuration['cluster_billing_account_name']
     host_name_from_rig_index = configuration['host_name_from_rig_index']
@@ -1245,4 +1252,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
 
 
 if __name__ == "__main__":
-    transfero()
+    if len(sys.argv)>=2 :
+        transfero(sys.argv[1])
+    else:
+        transfero()
