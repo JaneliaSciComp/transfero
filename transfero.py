@@ -80,7 +80,6 @@ def run_subprocess_and_return_stdout(command_as_list, shell=False) :
     completed_process = \
         subprocess.run(command_as_list, 
                        capture_output=True,
-                       text=True,
                        encoding='utf-8',
                        check=True, 
                        shell=shell)
@@ -94,7 +93,6 @@ def run_subprocess_and_return_code_and_stdout(command_as_list, shell=False) :
     completed_process = \
         subprocess.run(command_as_list, 
                        capture_output=True,
-                       text=True,
                        encoding='utf-8',
                        check=False, 
                        shell=shell)
@@ -125,7 +123,6 @@ def run_subprocess_live_and_return_stdouterr(command_as_list, check=True, shell=
                           stdout=subprocess.PIPE, 
                           stderr=subprocess.STDOUT, 
                           bufsize=1, 
-                          text=True, 
                           encoding='utf-8', 
                           shell=shell) as p, io.StringIO() as buf:
         for line in p.stdout :
@@ -147,7 +144,7 @@ def run_subprocess_live(command_as_list, check=True, shell=False) :
     '''
     Call an external executable, with live display of the output.
     '''
-    with subprocess.Popen(command_as_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, text=True, encoding='utf-8', shell=shell) as p, io.StringIO() as buf:
+    with subprocess.Popen(command_as_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, encoding='utf-8', shell=shell) as p, io.StringIO() as buf:
         for line in p.stdout :
             print(line, end='')
             buf.write(line)
@@ -408,7 +405,6 @@ def list_remote_dir(source_user, source_host, source_path) :
     completed_process = \
         subprocess.run(command_line_as_list, 
                        capture_output=True,
-                       text=True,
                        encoding='utf-8',
                        check=False)
     if completed_process.returncode != 0 :
