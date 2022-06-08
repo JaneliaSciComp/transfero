@@ -1179,7 +1179,7 @@ def local_verify(source_path, dest_path) :
 
 
 
-def transfero(configuration_or_configuration_file_name, do_transfer_data_from_rigs=True, do_run_analysis=True):
+def transfero(configuration_or_configuration_file_name=None, do_transfer_data_from_rigs=True, do_run_analysis=True):
     '''
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1193,7 +1193,7 @@ def transfero(configuration_or_configuration_file_name, do_transfer_data_from_ri
     this_script_folder_path = os.path.dirname(this_script_path)
     if configuration_or_configuration_file_name == None:
         user_name = os.getlogin()
-        configuration_file_name = '%s_configuration.yml' % user_name
+        configuration_file_name = '%s_configuration.yaml' % user_name
         configuration_file_path = os.path.join(this_script_folder_path, configuration_file_name)
         with open(configuration_file_path, 'r') as stream:
             configuration = yaml.safe_load(stream)

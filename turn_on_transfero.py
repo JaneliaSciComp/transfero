@@ -26,13 +26,13 @@ def turn_on_transfero(hr=22, min=0) :
     transfero_folder_path = os.path.dirname(this_script_path)
     transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
     user_name = os.getlogin()
-    configuration_file_name = '%s_configuration.yml' % user_name
+    configuration_file_name = '%s_configuration.yaml' % user_name
     configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
     with open(configuration_file_path, 'r') as stream:
         configuration = yaml.safe_load(stream)
-    cluster_billing_account_name = configuration.cluster_billing_account_name 
+    cluster_billing_account_name = configuration['cluster_billing_account_name']
     
-    destination_folder_path = configuration.destination_folder 
+    destination_folder_path = configuration['destination_folder']
     escaped_destination_folder_path = shlex.quote(destination_folder_path)    
     transfero_logs_folder_path = os.path.join(destination_folder_path, 'transfero-logs') 
     escaped_transfero_logs_folder_path = shlex.quote(transfero_logs_folder_path) 
@@ -74,7 +74,7 @@ def turn_on_transfero(hr=22, min=0) :
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 
         
-    command_line = '{ crontab -l | grep --invert-match %s echo "%02d %02d * * *     flock --nonblock %s --command %s   #transfero" } | crontab' % \
+    command_line = '{ crontab -l | grep --invert-match %s; echo "%02d %02d * * *     flock --nonblock %s --command %s   #TRANSFERO"; } | crontab' % \
                         (escaped_hash_transfero, 
                          min, 
                          hr, 
@@ -85,7 +85,7 @@ def turn_on_transfero(hr=22, min=0) :
     turn_off_transfero()
 
     # Execute the command to turn on transfero
-    run_subprocess_live(command_line)
+    run_subprocess_live(command_line, shell=True)
 
 
 
