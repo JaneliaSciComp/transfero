@@ -73,7 +73,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     # Run transfero
     #analysis_parameters = { 'doautomaticcheckscomplete', 'on' } 
     print('Running transfero...') 
-    transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
+    transfero(per_lab_configuration, do_transfer_data_from_rigs, do_run_analysis)
 
     # Check that the expected files are present on dm11
     local_verify(read_only_example_experiments_folder_path, transfero_destination_folder_path) 
@@ -102,7 +102,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
                                (rig_host_name, rig_data_folder_path, experiment_folder_count))
 
     # Run transfero again, make sure nothing has changed
-    transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
+    transfero(per_lab_configuration, do_transfer_data_from_rigs, do_run_analysis)         
 
     # Check that the expected files are present on dm11
     local_verify(read_only_example_experiments_folder_path, transfero_destination_folder_path) 
