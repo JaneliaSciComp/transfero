@@ -24,6 +24,7 @@ def turn_on_transfero(hr=22, min=0) :
     # Load the configuration, based on the user name
     this_script_path = os.path.realpath(__file__)
     transfero_folder_path = os.path.dirname(this_script_path)
+    python_executable_path = os.path.join(transfero_folder_path, 'python/bin/python3')
     transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
     user_name = os.getlogin()
     configuration_file_name = '%s_configuration.yaml' % user_name
@@ -53,11 +54,12 @@ def turn_on_transfero(hr=22, min=0) :
 #     transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_file_name}" 
 
     core_command_line = \
-        '%s %s %s %s %s' % (escaped_launcher_script_path, 
-                            escaped_bash_profile_path, 
-                            transfero_script_path, 
-                            cluster_billing_account_name, 
-                            escaped_transfero_logs_folder_path) 
+        '%s %s %s %s %s %s' % (escaped_launcher_script_path, 
+                               escaped_bash_profile_path, 
+                               python_executable_path,
+                               transfero_script_path, 
+                               cluster_billing_account_name, 
+                               escaped_transfero_logs_folder_path) 
 
 #     core_command_line = \
 #         sprintf(['. /misc/lsf/conf/profile.lsf  ' \

@@ -2,3 +2,7 @@ __pycache__/
 *.m
 mfiles/
 test-source-folder-read-only/
+Python*/
+python/
+Python*.tar.gz
+Python*.tgz
