@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python
 
 import os
 import shlex
@@ -92,4 +92,12 @@ def turn_on_transfero(hr=22, min=0) :
 
 
 if __name__ == "__main__":
-    turn_on_transfero()
+    if len(sys.argv)>=2 :
+        hr = int(sys.argv[1]) 
+    else:
+        hr = 22
+    if len(sys.argv)>=3 :
+        min = int(sys.argv[2]) 
+    else:
+        min = 0
+    turn_on_transfero(hr, min)

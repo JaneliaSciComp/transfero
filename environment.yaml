@@ -1,0 +1,7 @@
+name: transfero
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pyyaml
+prefix: /groups/aso/home/asorobot/miniconda3/envs/transfero
