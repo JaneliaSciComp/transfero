@@ -273,8 +273,8 @@ def does_remote_file_exist(user_name, host_name, path) :
     elif return_code == 1 :
         does_exist = False 
     else :
-        raise Exception('Ambiguous result from "%s": Not clear if file/folder %s exists or not on host %s.  Return code is %d.  stdout is:\n%s' %
-                        str(command_line_as_list), path, host_name, return_code, stdout) ;
+        raise RuntimeError('Ambiguous result from "%s": Not clear if file/folder %s exists or not on host %s.  Return code is %d.  stdout is:\n%s' %
+                           (str(command_line_as_list), path, host_name, return_code, stdout) )
     return does_exist
 
 
