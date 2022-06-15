@@ -1017,10 +1017,10 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                                    dest_folder_absolute_path) 
             did_synch_from_unaborted_experiment_folder_index[i] = True 
         except Exception as e :
-            print('There was a problem during the synch of source experiment folder\n  %s' % source_folder_absolute_path)
+            print('There was a problem during the sync of source experiment folder\n  %s' % source_folder_absolute_path)
             print(repr(e))     
             tb = e.__traceback__
-            traceback.print_tb(tb)
+            traceback.print_tb(tb, file=sys.stdout)
 
     # print the number of experiment folders copied
     synched_experiment_folder_count = sum(did_synch_from_unaborted_experiment_folder_index) 
@@ -1046,7 +1046,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                       source_folder_absolute_path) 
                 print(repr(e))     
                 tb = e.__traceback__
-                traceback.print_tb(tb)
+                traceback.print_tb(tb, file=sys.stdout)
     
     # print the number of experiment folders copied
     deleted_experiment_folder_count = sum(did_delete_from_synched_experiment_index) 
@@ -1255,8 +1255,7 @@ def transfero(configuration_or_configuration_file_name=None, do_transfer_data_fr
                       (rig_host_name, lab_data_folder_path, rig_user_name, destination_folder) )
                 print(repr(e))     
                 tb = e.__traceback__
-                traceback.print_tb(tb)
-
+                traceback.print_tb(tb, file=sys.stdout)
     else :
         print('Skipping transfer of data from rigs.\n') 
     
