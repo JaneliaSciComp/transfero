@@ -2,6 +2,7 @@
 
 import sys
 import os
+import pwd
 import datetime
 import yaml
 import time
@@ -194,6 +195,11 @@ def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command
     # Actually run the command
     stdout = run_subprocess_and_return_stdout(command_line_as_list)
     return stdout
+
+
+
+def get_user_name():
+    return pwd.getpwuid(os.getuid())[0]
 
 
 
@@ -1189,7 +1195,7 @@ def transfero(configuration_or_configuration_file_name=None, do_transfer_data_fr
     this_script_path = os.path.realpath(__file__)
     this_script_folder_path = os.path.dirname(this_script_path)
     if configuration_or_configuration_file_name == None:
-        user_name = os.getlogin()
+        user_name = get_user_name()
         configuration_file_name = '%s_configuration.yaml' % user_name
         configuration_file_path = os.path.join(this_script_folder_path, configuration_file_name)
         with open(configuration_file_path, 'r') as stream:

@@ -25,7 +25,7 @@ def turn_on_transfero(hr=22, min=0) :
     this_script_path = os.path.realpath(__file__)
     transfero_folder_path = os.path.dirname(this_script_path)
     transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
-    user_name = os.getlogin()
+    user_name = get_user_name()
     configuration_file_name = '%s_configuration.yaml' % user_name
     configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
     with open(configuration_file_path, 'r') as stream:
