@@ -1,7 +1,7 @@
 cluster_billing_account_name: 'aso'
-host_name_from_rig_index: [ 'asolab-ww1.hhmi.org' ]
-rig_user_name_from_rig_index: [ 'ASOLAB-WW1+labadmin' ]
-data_folder_path_from_rig_index: [ '/cygdrive/d/to-be-transferred' ]
+host_name_from_rig_index: [ 'asolab-ww1.hhmi.org',  'deepmind-ww1.hhmi.org' ]
+rig_user_name_from_rig_index: [ 'ASOLAB-WW1+labadmin', 'DEEPMIND-WW1+labadmin' ]
+data_folder_path_from_rig_index: [ '/cygdrive/d/Data', '/cygdrive/c/Data' ]
 destination_folder: '/groups/aso/asolab/transfero-data'
 does_use_per_user_folders: false 
 analysis_executable_path: '/bin/echo'

@@ -27,6 +27,16 @@ class cd:
 
 
 
+def boolean_from_string(s) :
+    if s.lower()=='true' :
+        return True
+    elif s.lower()=='false' :
+        return False
+    else :
+        raise RuntimeError('Unable to convert string "%s" to True or False')
+
+
+
 def listmap(f, lst) :
     return list(map(f, lst))
 
@@ -567,6 +577,11 @@ def simple_dir(folder_name) :
 
 
 def add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_experiment_folder_index) :
+    '''
+    Makes a symbolic link from each folder in relative_path_from_experiment_folder_index into the to_process_folder_name.
+    Both to_process_folder_name and each relative path in relative_path_from_experiment_folder_index are taken to be relative
+    to destination_folder, which should be an absolute path.
+    '''
     to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
     experiment_folder_relative_path_count = len(relative_path_from_experiment_folder_index) 
     for i in range(experiment_folder_relative_path_count) :
@@ -1182,7 +1197,7 @@ def local_verify(source_path, dest_path) :
 
 
 
-def transfero(configuration_or_configuration_file_name=None, do_transfer_data_from_rigs=True, do_run_analysis=True):
+def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configuration_or_configuration_file_name=None):
     '''
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1298,7 +1313,14 @@ def transfero(configuration_or_configuration_file_name=None, do_transfer_data_fr
 
 
 if __name__ == "__main__":
-    if len(sys.argv)>=2 :
-        transfero(sys.argv[1])
-    else:
+    if len(sys.argv)==1 :
         transfero()
+    elif len(sys.argv)==2 :
+        transfero(boolean_from_string(sys.argv[1]))
+    elif len(sys.argv)==3 :
+        transfero(boolean_from_string(sys.argv[1]), boolean_from_string(sys.argv[2]))
+    elif len(sys.argv)==4 :
+        transfero(boolean_from_string(sys.argv[1]), boolean_from_string(sys.argv[2]), sys.argv[3])
+    else:
+        raise RuntimeError('Too many arguments to Transfero')
+        
