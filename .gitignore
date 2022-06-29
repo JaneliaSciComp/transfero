@@ -6,3 +6,5 @@ Python*/
 python/
 Python*.tar.gz
 Python*.tgz
+dask-worker-space/
+
