@@ -10,7 +10,12 @@ import subprocess
 import shlex
 import io
 import traceback
-
+from dask_jobqueue import LSFCluster
+from dask.distributed import Client, LocalCluster
+from dask.distributed import wait
+from dask.distributed import progress
+import getpass
+import math
 
 
 class cd:
@@ -37,8 +42,27 @@ def boolean_from_string(s) :
 
 
 
+def tic() :
+    return time.time()
+
+
+
+def toc(t) :
+    return time.time() - t
+
+
+
 def listmap(f, lst) :
     return list(map(f, lst))
+
+
+
+def abspath_relative_to_transfero(path) :
+    this_script_path = os.path.realpath(__file__)
+    this_script_folder_path = os.path.dirname(this_script_path)
+    with cd(this_script_folder_path) as _:
+        result = os.path.realpath(os.path.abspath(path))
+    return result
 
 
 
@@ -165,6 +189,18 @@ def run_subprocess_live(command_as_list, check=True, shell=False) :
         if check :
             if return_code != 0 :
                 raise RuntimeError("Running %s returned a non-zero return code: %d" % (str(command_as_list), return_code))
+    return return_code
+
+
+
+def run_subprocess_with_log_and_return_code(command_as_list, log_file_name, shell=False) :
+    '''
+    Call an external executable, with stdout+stderr to log file.
+    '''
+    with open(log_file_name, 'w') as fid:
+        process = subprocess.Popen(command_as_list, stdout=fid, stderr=fid, encoding='utf-8', shell=shell, check=False)
+        process.wait()
+        return_code = process.returncode
     return return_code
 
 
@@ -1197,6 +1233,103 @@ def local_verify(source_path, dest_path) :
 
 
 
+def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, do_use_dask, do_run_on_cluster) :
+    # Specify job/cluster parameters
+    maximum_slot_count = 400
+    slots_per_job = 4
+
+    # Define the function we'll call in each worker
+    def analyze_single_experiment(experiment_folder_path) :
+        stdouterr_file_path = os.path.join(experiment_folder_path, 'transfero-analysis.log')
+        command_as_list = [analysis_executable_path, experiment_folder_path]
+        rc = run_subprocess_with_log_and_return_code(command_as_list, stdouterr_file_path)                    
+        job_status = +1 if (rc==0) else -1
+        return job_status
+
+    # Report how many experiments are to be analyzed
+    experiment_count = len(folder_path_from_experiment_index)
+    printf('There are %d experiments that will be analyzed.\n' % experiment_count) 
+    if experiment_count > 0 :
+        printf('Submitting these for analysis...\n') 
+
+    # Run analyze_single_experiment() on all experiments
+    if do_use_dask :
+        maximum_worker_count = math.floor(maximum_slot_count/slots_per_job)
+        worker_count = min(maximum_worker_count, experiment_count)
+        username = get_user_name()
+        scratch_folder_path = '/scratch/%s' % username
+        memory_as_int  = 15 * slots_per_job
+        memory_as_string = '%d GB' % memory_as_int
+        project_string = '%s-transfero' % cluster_billing_account_name
+        if do_run_on_cluster :
+            with LSFCluster(cores=slots_per_job, memory=memory_as_string, local_dir=scratch_folder_path, projectstr=project_string, queue='normal', extralist='-oo /dev/null -eo /dev/null') as cluster:
+                #cluster.adapt(minimum=1, maximum=1000)
+                #cluster = LocalCluster(n_workers=4, threads_per_worker=1)
+                cluster.scale(worker_count)
+                with Client(cluster) as client:
+                    # Run all those on the cluster
+                    futures = client.map(analyze_single_experiment, folder_path_from_experiment_index, retries=2, pure=False)
+                    progress(futures, notebook=False)  # need notebook=False when running in Spyder
+                    wait(futures)  # just to make sure...
+                    job_status_from_experiment_index = [f.Result() for f in futures]
+        else :
+            # Still use dask, but the "cluster" is just on this machine
+            with LocalCluster(n_workers=8, threads_per_worker=1) as cluster:
+                with Client(cluster) as client:
+                    # Run all those on the cluster
+                    futures = client.map(analyze_single_experiment, folder_path_from_experiment_index, retries=2, pure=False)
+                    progress(futures, notebook=False)  # need notebook=False when running in Spyder
+                    wait(futures)  # just to make sure...
+                    job_status_from_experiment_index = [f.Result() for f in futures]
+    else :
+        # If not using Dask, just run them normally (usually just for debugging)
+        job_status_from_experiment_index = [ 0 ] * experiment_count
+        for i in range(experiment_count) :
+            experiment_folder_path = folder_path_from_experiment_index[i] 
+            rc = analyze_single_experiment(experiment_folder_path)
+            job_status = +1 if (rc==0) else -1
+            job_status_from_experiment_index[i] = job_status
+
+    # Report on any failed runs
+    successful_job_count = sum(job_status_from_experiment_index == +1) 
+    errored_job_count = sum(job_status_from_experiment_index == -1) 
+    did_not_finish_job_count = sum(job_status_from_experiment_index == 0)
+    if experiment_count == successful_job_count :
+        # All is well
+        printf('All %d jobs completed successfully.\n' % successful_job_count) 
+    else :
+        # Print the folders that completed successfully
+        did_complete_successfully = [ job_status==+1 for job_status in job_status_from_experiment_index ]
+        folder_path_from_successful_experiment_index = ibb(folder_path_from_experiment_index, did_complete_successfully) 
+        if isladen(folder_path_from_successful_experiment_index) :
+            printf('These %d jobs completed successfully:\n' % successful_job_count) 
+            for i in range(len(folder_path_from_successful_experiment_index)) :
+                experiment_folder_path = folder_path_from_successful_experiment_index[i]
+                printf('    %s\n' % experiment_folder_path) 
+            printf('\n') 
+        
+        # Print the folders that had errors
+        had_error = [ job_status==-1 for job_status in job_status_from_experiment_index ]
+        folder_path_from_errored_experiment_index = ibb(folder_path_from_experiment_index, had_error) 
+        if isladen(folder_path_from_errored_experiment_index) :
+            printf('These %d experiment folders had errors:\n' % errored_job_count) 
+            for i in range(len(folder_path_from_errored_experiment_index)) :
+                experiment_folder_path = folder_path_from_errored_experiment_index[i] 
+                printf('    %s\n' % experiment_folder_path) 
+            printf('\n') 
+        
+        # Print the folders that did not finish
+        did_not_finish = [ job_status==0 for job_status in job_status_from_experiment_index ] 
+        folder_path_from_unfinished_experiment_index = ibb(folder_path_from_experiment_index, did_not_finish) 
+        if isladen(folder_path_from_unfinished_experiment_index) :
+            printf('These %d experiment folders did not finish processing in the alloted time:\n' % did_not_finish_job_count) 
+            for i in range(len(folder_path_from_unfinished_experiment_index)) :
+                experiment_folder_path = folder_path_from_unfinished_experiment_index[i] 
+                printf('    %s\n' % experiment_folder_path) 
+            printf('\n') 
+
+
+
 def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configuration_or_configuration_file_name=None):
     '''
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
@@ -1224,12 +1357,14 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
         configuration = configuration_or_configuration_file_name
 
     # Unpack the per-lab configuration dict
-    #cluster_billing_account_name = configuration['cluster_billing_account_name']
+    cluster_billing_account_name = configuration['cluster_billing_account_name']
     host_name_from_rig_index = configuration['host_name_from_rig_index']
     rig_user_name_from_rig_index = configuration['rig_user_name_from_rig_index'] 
     data_folder_path_from_rig_index = configuration['data_folder_path_from_rig_index'] 
     destination_folder = configuration['destination_folder']     
-    analysis_executable_path = configuration['analysis_executable_path']
+    # We support relative paths (relative to this script for analysis exectuables)
+    raw_analysis_executable_path = configuration['analysis_executable_path']
+    analysis_executable_path = abspath_relative_to_transfero(raw_analysis_executable_path)
     to_process_folder_name = 'to-process' 
 
     # Add a "banner" to the start of the log
@@ -1276,20 +1411,23 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     
     # Run the analysis script on links in the to-process folder
     if do_run_analysis :
+        # Set a couple of parameters
+        do_use_dask = False
+        do_run_on_cluster = False
+
         # Get the links from the to_process_folder_name folder
         to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
         folder_name_from_experiment_index = os.listdir(to_process_folder_path) 
         link_path_from_experiment_index = \
-            [os.path.join(to_process_folder_path, folder_name) for folder_name in folder_name_from_experiment_index]
+            [ os.path.join(to_process_folder_path, folder_name) for folder_name in folder_name_from_experiment_index ]
+        folder_path_from_experiment_index = [ os.path.realpath(experiment_folder_link_path) for experiment_folder_link_path in link_path_from_experiment_index ]
 
-        # Run the analysis script    
-        # The analysis executable should return a 0 return code even if thing go wrong,
-        # so that this doesn't error out
-        run_subprocess_live([analysis_executable_path, to_process_folder_path]) 
+        # Submit the per-experiment analysis jobs to the cluster
+        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, do_use_dask, do_run_on_cluster)
         
         # Whether those succeeded or failed, remove the links from the
         # to-process folder
-        experiment_folder_count = len(link_path_from_experiment_index) 
+        experiment_folder_count = len(link_path_from_experiment_index)
         for i in range(experiment_folder_count) :
             experiment_folder_link_path = link_path_from_experiment_index[i]  
             # experiment_folder_link_path is almost certainly a symlink, but check
@@ -1323,4 +1461,3 @@ if __name__ == "__main__":
         transfero(boolean_from_string(sys.argv[1]), boolean_from_string(sys.argv[2]), sys.argv[3])
     else:
         raise RuntimeError('Too many arguments to Transfero')
-        

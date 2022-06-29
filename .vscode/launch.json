@@ -14,6 +14,14 @@
             "justMyCode": true
         } ,
         {
+            "name": "test_transfero_on_aso_rig.py",
+            "type": "python",
+            "request": "launch",
+            "program": "test_transfero.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        } ,
+        {
             "name": "turn_on_transfero.py",
             "type": "python",
             "request": "launch",

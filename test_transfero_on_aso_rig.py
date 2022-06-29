@@ -4,13 +4,14 @@ import os
 
 from transfero import *
 
-def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
+def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     # Where does this script live?
     this_script_path = os.path.realpath(__file__)
     this_folder_path = os.path.dirname(this_script_path)
     project_folder_path = os.path.dirname(this_folder_path) 
     root_example_experiments_folder_path = os.path.join(project_folder_path, 'example-experiments') 
-    read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-katie-experiment-2022-04-05-read-only') 
+    read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-fake-aso-experiment-read-only') 
+    #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-katie-experiment-2022-04-05-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'passing-test-suite-experiments-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-passing-test-suite-experiment-with-tracking-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'passing-test-suite-experiments-with-tracking-read-only') 
@@ -20,16 +21,17 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
     # Specify the "per-lab" configuration here
     #cluster_billing_account_name = 'scicompsoft' 
-    rig_host_name = 'beet.hhmi.org' 
-    rig_user_name = 'bransonk' 
-    rig_data_folder_path = '/cygdrive/e/flydisco_data/scicompsoft' 
-    transfero_destination_folder_path = os.path.join(root_example_experiments_folder_path, 'test-transfero-destination-folder') 
+    rig_host_name = 'asolab-ww1.hhmi.org' 
+    rig_user_name = 'labadmin' 
+    rig_data_folder_path = '/cygdrive/d/fake-test-data'
+    transfero_destination_folder_path = os.path.join(root_example_experiments_folder_path, 'test-transfero--on-aso-rig-destination-folder') 
     per_lab_configuration = {}
     per_lab_configuration['host_name_from_rig_index'] = [rig_host_name] 
     per_lab_configuration['rig_user_name_from_rig_index'] = [rig_user_name] 
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
-    per_lab_configuration['analysis_executable_path'] = '/bin/echo'
+    # per_lab_configuration['analysis_executable_path'] = '/bin/echo'
+    per_lab_configuration['analysis_executable_path'] = '../aso-deepmind-experiment-analysis-pipeline/aso_deep_mind_experiment_analysis_pipeline.py'  # this is interpreted realtive to folder containing transfero.py
 
     # Get the relative paths of all the experiment folders
     absolute_path_to_read_only_folder_from_experiment_index = find_experiment_folders(read_only_example_experiments_folder_path) 
@@ -136,4 +138,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(True, False)
+    test_transfero_on_aso_rig(True, False)
