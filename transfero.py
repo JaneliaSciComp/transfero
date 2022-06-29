@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from pickle import FALSE
 import sys
 import os
 import pwd
@@ -1416,7 +1417,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     # Run the analysis script on links in the to-process folder
     if do_run_analysis :
         # Set a couple of parameters
-        do_use_dask = True
+        do_use_dask = False
         do_run_on_cluster = False
 
         # Get the links from the to_process_folder_name folder
