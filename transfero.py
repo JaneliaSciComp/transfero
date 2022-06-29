@@ -4,6 +4,7 @@ import sys
 import os
 import pwd
 import datetime
+from pkg_resources import ensure_directory
 import yaml
 import time
 import subprocess
@@ -198,9 +199,8 @@ def run_subprocess_with_log_and_return_code(command_as_list, log_file_name, shel
     Call an external executable, with stdout+stderr to log file.
     '''
     with open(log_file_name, 'w') as fid:
-        process = subprocess.Popen(command_as_list, stdout=fid, stderr=fid, encoding='utf-8', shell=shell, check=False)
-        process.wait()
-        return_code = process.returncode
+        completed_process = subprocess.run(command_as_list, stdout=fid, stderr=subprocess.STDOUT, encoding='utf-8', shell=shell, check=False)
+        return_code = completed_process.returncode
     return return_code
 
 
@@ -619,6 +619,7 @@ def add_links_to_to_process_folder(destination_folder, to_process_folder_name, r
     to destination_folder, which should be an absolute path.
     '''
     to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
+    os.makedirs(to_process_folder_path, exist_ok=True)  # Create the to_process folder if it doesn't exist
     experiment_folder_relative_path_count = len(relative_path_from_experiment_folder_index) 
     for i in range(experiment_folder_relative_path_count) :
         experiment_folder_relative_path = relative_path_from_experiment_folder_index[i] 
@@ -1291,9 +1292,12 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
             job_status_from_experiment_index[i] = job_status
 
     # Report on any failed runs
-    successful_job_count = sum(job_status_from_experiment_index == +1) 
-    errored_job_count = sum(job_status_from_experiment_index == -1) 
-    did_not_finish_job_count = sum(job_status_from_experiment_index == 0)
+    was_successful_from_experiment_index = [job_status==+1 for job_status in job_status_from_experiment_index]
+    successful_job_count = sum(was_successful_from_experiment_index) 
+    did_error_from_experiment_count =  [job_status==-1 for job_status in job_status_from_experiment_index]
+    errored_job_count = sum(did_error_from_experiment_count) 
+    did_not_finish_from_experiment_index = [job_status==0 for job_status in job_status_from_experiment_index]
+    did_not_finish_job_count = sum(did_not_finish_from_experiment_index)
     if experiment_count == successful_job_count :
         # All is well
         printf('All %d jobs completed successfully.\n' % successful_job_count) 
