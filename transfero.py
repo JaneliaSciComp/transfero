@@ -1235,10 +1235,12 @@ def local_verify(source_path, dest_path) :
 
 
 
-def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, do_use_dask, do_run_on_cluster) :
+def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name) :
     # Specify job/cluster parameters
+    do_use_dask = True
+    do_run_on_cluster = True
     maximum_slot_count = 400
-    slots_per_job = 4
+    slots_per_job = 8
 
     # Define the function we'll call in each worker
     def analyze_single_experiment(experiment_folder_path) :
@@ -1254,6 +1256,9 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
     if experiment_count > 0 :
         printf('Submitting these for analysis...\n') 
 
+    # Want elapsed time
+    tic_id = tic()
+
     # Run analyze_single_experiment() on all experiments
     if do_use_dask :
         maximum_worker_count = math.floor(maximum_slot_count/slots_per_job)
@@ -1264,25 +1269,30 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
         memory_as_string = '%d GB' % memory_as_int
         project_string = '%s-transfero' % cluster_billing_account_name
         if do_run_on_cluster :
-            with LSFCluster(cores=slots_per_job, memory=memory_as_string, local_dir=scratch_folder_path, projectstr=project_string, queue='normal', extralist='-oo /dev/null -eo /dev/null') as cluster:
+            # with LSFCluster(cores=slots_per_job, memory=memory_as_string, local_directory=scratch_folder_path, project=project_string, 
+            #                 queue='normal', job_extra=['-oo /dev/null', '-eo /dev/null']) as cluster:
+            with LSFCluster(cores=slots_per_job, memory=memory_as_string, local_directory=scratch_folder_path, project=cluster_billing_account_name) as cluster:
                 #cluster.adapt(minimum=1, maximum=1000)
                 #cluster = LocalCluster(n_workers=4, threads_per_worker=1)
-                cluster.scale(worker_count)
+                print('**Cluster job script:')
+                print(cluster.job_script())
+                print('**End cluster job script.')
+                cluster.scale(jobs=worker_count)
                 with Client(cluster) as client:
                     # Run all those on the cluster
                     futures = client.map(analyze_single_experiment, folder_path_from_experiment_index, retries=2, pure=False)
                     progress(futures, notebook=False)  # need notebook=False when running in Spyder
                     wait(futures)  # just to make sure...
-                    job_status_from_experiment_index = [f.Result() for f in futures]
+                    job_status_from_experiment_index = [f.result() for f in futures]
         else :
             # Still use dask, but the "cluster" is just on this machine
-            with LocalCluster(n_workers=8, threads_per_worker=1) as cluster:
+            with LocalCluster(n_workers=1, threads_per_worker=slots_per_job) as cluster:
                 with Client(cluster) as client:
                     # Run all those on the cluster
                     futures = client.map(analyze_single_experiment, folder_path_from_experiment_index, retries=2, pure=False)
                     progress(futures, notebook=False)  # need notebook=False when running in Spyder
                     wait(futures)  # just to make sure...
-                    job_status_from_experiment_index = [f.Result() for f in futures]
+                    job_status_from_experiment_index = [f.result() for f in futures]
     else :
         # If not using Dask, just run them normally (usually just for debugging)
         job_status_from_experiment_index = [ 0 ] * experiment_count
@@ -1332,6 +1342,11 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
                 experiment_folder_path = folder_path_from_unfinished_experiment_index[i] 
                 printf('    %s\n' % experiment_folder_path) 
             printf('\n') 
+
+    # Report elapsed time
+    elapsed_time = toc(tic_id)
+    if experiment_count > 0 :
+        print("Elapsed time for analysis was %0.1f seconds" % elapsed_time)
 
 
 
@@ -1416,10 +1431,6 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     
     # Run the analysis script on links in the to-process folder
     if do_run_analysis :
-        # Set a couple of parameters
-        do_use_dask = False
-        do_run_on_cluster = False
-
         # Get the links from the to_process_folder_name folder
         to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
         folder_name_from_experiment_index = os.listdir(to_process_folder_path) 
@@ -1428,7 +1439,7 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
         folder_path_from_experiment_index = [ os.path.realpath(experiment_folder_link_path) for experiment_folder_link_path in link_path_from_experiment_index ]
 
         # Submit the per-experiment analysis jobs to the cluster
-        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, do_use_dask, do_run_on_cluster)
+        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name)
         
         # Whether those succeeded or failed, remove the links from the
         # to-process folder

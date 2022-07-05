@@ -20,8 +20,8 @@ def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=T
     #read_only_example_experiments_folder_path = '/groups/branson/bransonlab/flydisco_example_experiments_read_only' 
 
     # Specify the "per-lab" configuration here
-    cluster_billing_account_name = 'scicompsoft' 
-    #cluster_billing_account_name = 'aso'
+    #cluster_billing_account_name = 'scicompsoft' 
+    cluster_billing_account_name = 'aso'
     rig_host_name = 'asolab-ww1.hhmi.org' 
     rig_user_name = 'ASOLAB-WW1+labadmin' 
     rig_data_folder_path = '/cygdrive/d/fake-test-data'
@@ -32,7 +32,7 @@ def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=T
     per_lab_configuration['rig_user_name_from_rig_index'] = [rig_user_name] 
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
-    # per_lab_configuration['analysis_executable_path'] = '/bin/echo'
+    #per_lab_configuration['analysis_executable_path'] = '/bin/echo'
     per_lab_configuration['analysis_executable_path'] = '../aso-deepmind-experiment-analysis-pipeline/aso_deepmind_experiment_analysis_pipeline.py'  # this is interpreted realtive to folder containing transfero.py
 
     # Get the relative paths of all the experiment folders
@@ -70,7 +70,7 @@ def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=T
         experiment_count = len(folder_path_from_experiment_index)
         for i in range(experiment_count) : 
             experiment_folder_path = folder_path_from_experiment_index[i] 
-            command_line = {'ln', '-s', experiment_folder_path, to_process_folder_path} 
+            command_line = ['ln', '-s', experiment_folder_path, to_process_folder_path] 
             run_subprocess_live(command_line) 
         print('Done transfering data to the destination path.') 
  
@@ -140,4 +140,4 @@ def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=T
 
 
 if __name__ == "__main__":
-    test_transfero_on_aso_rig(True, True)
+    test_transfero_on_aso_rig(False, True)
