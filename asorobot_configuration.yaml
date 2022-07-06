@@ -5,4 +5,4 @@ data_folder_path_from_rig_index: [ '/cygdrive/d/Data', '/cygdrive/c/Data' ]
 destination_folder: '/groups/aso/asolab/transfero-data'
 does_use_per_user_folders: false 
 #analysis_executable_path: '/bin/echo'
-analysis_executable_path: '../aso-deepmind-experiment-analysis-pipeline/aso_deep_mind_experiment_analysis_pipeline.py'  # this is interpreted realtive to folder containing transfero.py
+analysis_executable_path: '../aso-deepmind-experiment-analysis-pipeline/aso_deepmind_experiment_analysis_pipeline.py'  # this is interpreted realtive to folder containing transfero.py
