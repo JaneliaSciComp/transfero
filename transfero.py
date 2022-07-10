@@ -1239,8 +1239,8 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
     # Specify job/cluster parameters
     do_use_dask = True
     do_run_on_cluster = True
-    maximum_slot_count = 400
-    slots_per_job = 8
+    maximum_slot_count = 480
+    slots_per_job = 48
 
     # Define the function we'll call in each worker
     def analyze_single_experiment(experiment_folder_path) :
