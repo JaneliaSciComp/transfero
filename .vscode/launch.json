@@ -36,6 +36,14 @@
             "program": "turn_off_transfero.py",
             "console": "integratedTerminal",
             "justMyCode": true
+        } ,
+        {
+            "name": "fuster.py",
+            "type": "python",
+            "request": "launch",
+            "program": "fuster.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }
