@@ -10,5 +10,5 @@ transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_f
 
 . /misc/lsf/conf/profile.lsf
 . ${escaped_bash_profile_path}
-conda activate transfero
-bsub -n1 -P ${cluster_billing_account_name} -o ${transfero_log_file_path} -e ${transfero_log_file_path} ${python_executable_path} ${transfero_script_path}
+#conda activate transfero
+bsub -n1 -P ${cluster_billing_account_name} -o ${transfero_log_file_path} -e ${transfero_log_file_path} ${transfero_script_path}
