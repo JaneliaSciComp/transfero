@@ -3,6 +3,7 @@
 import os
 import shlex
 
+from utilities import *
 from transfero import *
 from turn_off_transfero import *
 
@@ -28,8 +29,7 @@ def turn_on_transfero(hr=22, min=0) :
     user_name = get_user_name()
     configuration_file_name = '%s_configuration.yaml' % user_name
     configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
-    with open(configuration_file_path, 'r') as stream:
-        configuration = yaml.safe_load(stream)
+    configuration = read_yaml_file_badly(configuration_file_path)
     cluster_billing_account_name = configuration['cluster_billing_account_name']
     
     destination_folder_path = configuration['destination_folder']
