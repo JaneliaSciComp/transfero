@@ -34,6 +34,8 @@ def test_transfero_on_aso_rig(do_transfer_data_from_rigs=True, do_run_analysis=T
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
     #per_lab_configuration['analysis_executable_path'] = '/bin/echo'
     per_lab_configuration['analysis_executable_path'] = '../aso-deepmind-experiment-analysis-pipeline/aso_deepmind_experiment_analysis_pipeline.py'  # this is interpreted realtive to folder containing transfero.py
+    per_lab_configuration['slots_per_analysis_job'] = 48
+    per_lab_configuration['maximum_analysis_slot_count'] = 480
 
     # Get the relative paths of all the experiment folders
     absolute_path_to_read_only_folder_from_experiment_index = find_experiment_folders(read_only_example_experiments_folder_path) 

@@ -25,6 +25,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     rig_data_folder_path = '/cygdrive/e/flydisco_data/scicompsoft' 
     transfero_destination_folder_path = os.path.join(root_example_experiments_folder_path, 'test-transfero-destination-folder') 
     per_lab_configuration = {}
+    per_lab_configuration['cluster_billing_account_name'] = 'scicompsoft'
     per_lab_configuration['host_name_from_rig_index'] = [rig_host_name] 
     per_lab_configuration['rig_user_name_from_rig_index'] = [rig_user_name] 
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
@@ -136,4 +137,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(True, False)
+    test_transfero(False, True)

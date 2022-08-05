@@ -145,9 +145,11 @@ def determine_which_jobs_to_submit(slot_count_from_submittable_index, maximum_sl
 def bsub(command_line_as_list, do_actually_submit=True, slot_count=1, stdouterr_file_name='/dev/null', options_as_list=[]) :
     # Wrapper for LSF bsub command.  Returns job id as a double.
     # Throws error if anything goes wrong.
+    if (stdouterr_file_name is None) or len(stdouterr_file_name)==0 :
+        stdouterr_file_name = '/dev/null' 
     if do_actually_submit :
         bsub_command_line_as_string = \
-            ( [ 'bsub', '-n', str(slot_count), '-eo', stdouterr_file_name, '-oo', stdouterr_file_name ] + 
+            ( [ 'bsub', '-n', str(slot_count), '-oo', stdouterr_file_name, '-eo', stdouterr_file_name ] + 
               options_as_list + 
               command_line_as_list )      
         # printf('%s\n', bsub_command) 

@@ -5,6 +5,7 @@ import time
 import subprocess
 import io
 import datetime
+import ast
 
 
 class cd:
@@ -428,3 +429,19 @@ def simple_dir(folder_name) :
 
 
 
+def read_yaml_file_badly(file_name) :
+    result = {}
+    with open(file_name, 'r', encoding='UTF-8') as file:
+        line_from_line_index = file.readlines()
+    line_count = len(line_from_line_index)
+    for line_index in range(line_count) :
+        line = line_from_line_index[line_index].strip()
+        index_of_colon = line.find(':')
+        if index_of_colon < 0 :
+            continue
+        key = line[:index_of_colon].strip()
+        value_as_string = line[index_of_colon+1:].strip()
+        value = ast.literal_eval(value_as_string)
+        result[key] = value
+    return result
+    
