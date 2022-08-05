@@ -145,8 +145,8 @@ def list_remote_dir(source_user, source_host, source_path) :
     remote_ls_command_line = 'ls -l -A -U -Q --full-time -- ' + escaped_source_path
     command_line_as_list = ['/usr/bin/ssh', source_user+'@'+source_host, remote_ls_command_line ]
     completed_process = \
-        subprocess.run(command_line_as_list, 
-                       capture_output=True,
+        subprocess.run(command_line_as_list,
+                       stdout=subprocess.PIPE, 
                        encoding='utf-8',
                        check=False)
     if completed_process.returncode != 0 :

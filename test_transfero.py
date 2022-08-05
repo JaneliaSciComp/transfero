@@ -31,6 +31,8 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
     per_lab_configuration['analysis_executable_path'] = '/bin/echo'
+    per_lab_configuration['slots_per_analysis_job'] = 1
+    per_lab_configuration['maximum_analysis_slot_count'] = 10
 
     # Get the relative paths of all the experiment folders
     absolute_path_to_read_only_folder_from_experiment_index = find_experiment_folders(read_only_example_experiments_folder_path) 
@@ -137,4 +139,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(False, True)
+    test_transfero(True, True)
