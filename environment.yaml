@@ -1,8 +1,0 @@
-name: transfero
-channels:
-  - defaults
-dependencies:
-  - python=3.10
-  - pyyaml
-  - dask-jobqueue
-prefix: /home/taylora/miniconda3/envs/transfero
