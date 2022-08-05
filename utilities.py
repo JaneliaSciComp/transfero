@@ -105,7 +105,7 @@ def printf(*args) :
 def run_subprocess_and_return_stdout(command_as_list, shell=False) :
     completed_process = \
         subprocess.run(command_as_list, 
-                       capture_output=True,
+                       stdout=subprocess.PIPE,
                        encoding='utf-8',
                        check=True, 
                        shell=shell)
@@ -118,7 +118,7 @@ def run_subprocess_and_return_stdout(command_as_list, shell=False) :
 def run_subprocess_and_return_code_and_stdout(command_as_list, shell=False) :
     completed_process = \
         subprocess.run(command_as_list, 
-                       capture_output=True,
+                       stdout=subprocess.PIPE,
                        encoding='utf-8',
                        check=False, 
                        shell=shell)
