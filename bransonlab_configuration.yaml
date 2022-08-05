@@ -3,5 +3,5 @@ host_name_from_rig_index: [ 'arrowroot.hhmi.org', 'beet.hhmi.org', 'carrot.hhmi.
 rig_user_name_from_rig_index: [ 'bransonk', 'bransonk', 'bransonk', 'bransonk' ]
 data_folder_path_from_rig_index: [ '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson' ]
 destination_folder: '/groups/branson/bransonlab/flydisco_data'
-does_use_per_user_folders: false 
+does_use_per_user_folders: False 
 analysis_executable_path: '/bin/echo'

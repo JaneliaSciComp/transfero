@@ -441,6 +441,7 @@ def read_yaml_file_badly(file_name) :
             continue
         key = line[:index_of_colon].strip()
         value_as_string = line[index_of_colon+1:].strip()
+        # print("value_as_string: %s" % value_as_string)
         value = ast.literal_eval(value_as_string)
         result[key] = value
     return result
