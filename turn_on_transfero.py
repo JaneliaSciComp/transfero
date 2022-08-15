@@ -7,7 +7,7 @@ from utilities import *
 from transfero import *
 from turn_off_transfero import *
 
-def turn_on_transfero(hr=22, min=0) :
+def turn_on_transfero(hr=3, min=0) :
     '''
     Install the transfero job in crontab.
     Can give optional hr, min args, which specify the time to run, in 24-hour
@@ -53,8 +53,9 @@ def turn_on_transfero(hr=22, min=0) :
 #     transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_file_name}" 
 
     core_command_line = \
-        '%s %s %s %s %s' % (escaped_launcher_script_path, 
-                            escaped_bash_profile_path, 
+        '%s %s %s %s %s %s' % (escaped_launcher_script_path, 
+                            escaped_bash_profile_path,
+                            destination_folder_path, 
                             transfero_script_path, 
                             cluster_billing_account_name, 
                             escaped_transfero_logs_folder_path) 
@@ -74,11 +75,10 @@ def turn_on_transfero(hr=22, min=0) :
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 
         
-    command_line = '{ crontab -l | grep --invert-match %s; echo "%02d %02d * * *     flock --nonblock %s --command %s   #TRANSFERO"; } | crontab' % \
+    command_line = '{ crontab -l | grep --invert-match %s; echo "%02d %02d * * *     %s   #TRANSFERO"; } | crontab' % \
                         (escaped_hash_transfero, 
                          min, 
                          hr, 
-                         escaped_destination_folder_path, 
                          escaped_core_command_line)
     
     # Clear out any pre-existing #transfero crontab lines
