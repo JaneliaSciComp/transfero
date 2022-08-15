@@ -7,20 +7,22 @@ from utilities import *
 from transfero import *
 from turn_off_transfero import *
 
-def turn_on_transfero(hr=3, min=0) :
+def turn_on_transfero(hr_argument=None, min_argument=None) :
     '''
     Install the transfero job in crontab.
-    Can give optional hr, min args, which specify the time to run, in 24-hour
+    Can give optional hr_argument, min_argument args, which specify the time to run, in 24-hour
     clock format.  I.e. turn_on_transfero(23,11) sets it to run once a day at 11:11
-    PM.  Default time is 10:00 PM if no args are given.
+    PM.  Default time is given in configuration file if no args are given.
     '''
     
-    hr = round(hr) 
-    if hr<0 or hr>23 :
-        raise RuntimeError('hr must be an integer between 0 and 23, inclusive') 
-    min = round(min) 
-    if min<0 or min>59 :
-        raise RuntimeError('min must be an integer between 0 and 59, inclusive')
+    if not (hr_argument is None) :
+        hr_argument = round(hr_argument) 
+        if hr_argument<0 or hr_argument>23 :
+            raise RuntimeError('hr_argument must be an integer between 0 and 23, inclusive') 
+    if not (min_argument is None) :
+        min_argument = round(min_argument) 
+        if min_argument<0 or min_argument>59 :
+            raise RuntimeError('min_argument must be an integer between 0 and 59, inclusive')
 
     # Load the configuration, based on the user name
     this_script_path = os.path.realpath(__file__)
@@ -44,6 +46,15 @@ def turn_on_transfero(hr=3, min=0) :
     launcher_script_path = os.path.join(transfero_folder_path, 'transfero_launcher.sh') 
     escaped_launcher_script_path = shlex.quote(launcher_script_path) 
     
+    if hr_argument is None :
+        hr = configuration['launch_hour']
+    else :
+        hr = hr_argument
+    if min_argument is None :
+        min = configuration['launch_minute']
+    else :
+        min = min_argument    
+
 #     escaped_bash_profile_path=${1}
 #     escaped_fly_disco_analysis_folder_path=${2}
 #     pi_last_name=${3}
@@ -77,8 +88,8 @@ def turn_on_transfero(hr=3, min=0) :
         
     command_line = '{ crontab -l | grep --invert-match %s; echo "%02d %02d * * *     %s   #TRANSFERO"; } | crontab' % \
                         (escaped_hash_transfero, 
-                         min, 
-                         hr, 
+                         min_argument, 
+                         hr_argument, 
                          escaped_core_command_line)
     
     # Clear out any pre-existing #transfero crontab lines
@@ -93,9 +104,9 @@ if __name__ == "__main__":
     if len(sys.argv)>=2 :
         hr = int(sys.argv[1]) 
     else:
-        hr = 22
+        hr = None
     if len(sys.argv)>=3 :
         min = int(sys.argv[2]) 
     else:
-        min = 0
+        min = None
     turn_on_transfero(hr, min)
