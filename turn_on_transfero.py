@@ -88,8 +88,8 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
         
     command_line = '{ crontab -l | grep --invert-match %s; echo "%02d %02d * * *     %s   #TRANSFERO"; } | crontab' % \
                         (escaped_hash_transfero, 
-                         min_argument, 
-                         hr_argument, 
+                         min, 
+                         hr, 
                          escaped_core_command_line)
     
     # Clear out any pre-existing #transfero crontab lines
