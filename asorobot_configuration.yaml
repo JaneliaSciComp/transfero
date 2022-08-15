@@ -12,4 +12,4 @@ maximum_analysis_slot_count: 480
 do_transfer_data_from_rigs: True
 do_run_analysis: True
 launch_hour: 3
-launch_minutes: 0
+launch_minute: 0
