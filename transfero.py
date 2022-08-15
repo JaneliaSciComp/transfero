@@ -1024,8 +1024,8 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     '''
 
     # For debugging
-    print('do_transfer_data_from_rigs_argument: %s', str(do_transfer_data_from_rigs_argument))
-    print('do_run_analysis_argument: %s', str(do_run_analysis_argument))
+    print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
+    print('do_run_analysis_argument: %s' % str(do_run_analysis_argument))
 
     # Load the per-lab configuration file
     this_script_path = os.path.realpath(__file__)
@@ -1070,9 +1070,8 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
         do_run_analysis = do_run_analysis_argument
 
     # For debugging
-    print('do_transfer_data_from_rigs: %s', str(do_transfer_data_from_rigs))
-    print('do_run_analysis: %s', str(do_run_analysis))
-    return
+    print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
+    print('do_run_analysis: %s' % str(do_run_analysis))
 
     # Add a "banner" to the start of the log
     tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
@@ -1114,7 +1113,7 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
                 tb = e.__traceback__
                 traceback.print_tb(tb, file=sys.stdout)
     else :
-        print('Skipping transfer of data from rigs.\n') 
+        print('Skipping transfer of data from rigs.') 
     
     # Run the analysis script on links in the to-process folder
     if do_run_analysis :
@@ -1138,7 +1137,7 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
             if os.path.islink(experiment_folder_link_path) :
                 os.remove(experiment_folder_link_path) 
     else :
-        print('Skipping analysis.\n') 
+        print('Skipping analysis.') 
     
     # Want the start and end of a single transfero run to be clear in the log
     print('\n') 
