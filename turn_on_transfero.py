@@ -81,7 +81,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
 #                 pi_last_name, \
 #                 escaped_transfero_log_folder_path, \
 #                 escaped_transfero_log_folder_path)  %#ok<NOPRT>
-    escaped_core_command_line = shlex.quote(core_command_line) 
+    #escaped_core_command_line = shlex.quote(core_command_line) 
     
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 
@@ -90,7 +90,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
                         (escaped_hash_transfero, 
                          min, 
                          hr, 
-                         escaped_core_command_line)
+                         core_command_line)
     
     # Clear out any pre-existing #transfero crontab lines
     turn_off_transfero()
