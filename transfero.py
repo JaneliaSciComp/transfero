@@ -1014,7 +1014,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
 
 
 
-def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configuration_or_configuration_file_name=None):
+def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None):
     '''
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1022,6 +1022,10 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
        search, and a variety of other settings, are determined from the username of
        the user running transfero().    
     '''
+
+    # For debugging
+    print('do_transfer_data_from_rigs_argument: %s', str(do_transfer_data_from_rigs_argument))
+    print('do_run_analysis_argument: %s', str(do_run_analysis_argument))
 
     # Load the per-lab configuration file
     this_script_path = os.path.realpath(__file__)
@@ -1055,6 +1059,20 @@ def transfero(do_transfer_data_from_rigs=True, do_run_analysis=True, configurati
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
 
+    # Figure out what stages to run
+    if do_transfer_data_from_rigs_argument is None :
+        do_transfer_data_from_rigs = configuration['do_transfer_data_from_rigs']
+    else :
+        do_transfer_data_from_rigs = do_transfer_data_from_rigs_argument
+    if do_run_analysis_argument is None :
+        do_run_analysis = configuration['do_run_analysis']
+    else :
+        do_run_analysis = do_run_analysis_argument
+
+    # For debugging
+    print('do_transfer_data_from_rigs: %s', str(do_transfer_data_from_rigs))
+    print('do_run_analysis: %s', str(do_run_analysis))
+    return
 
     # Add a "banner" to the start of the log
     tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
