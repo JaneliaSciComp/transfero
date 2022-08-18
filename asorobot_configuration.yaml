@@ -8,8 +8,8 @@ does_use_per_user_folders: False
 analysis_executable_path: '../aso-deepmind-experiment-analysis-pipeline/aso_deepmind_experiment_analysis_pipeline.py'  
   # this is interpreted relative to folder containing transfero.py
 slots_per_analysis_job: 48
-maximum_analysis_slot_count: 480
-do_transfer_data_from_rigs: False
+maximum_analysis_slot_count: 960
+do_transfer_data_from_rigs: True
 do_run_analysis: True
 launch_hour: 3
 launch_minute: 0

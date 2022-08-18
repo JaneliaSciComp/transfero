@@ -1023,9 +1023,9 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
        the user running transfero().    
     '''
 
-    # For debugging
-    print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
-    print('do_run_analysis_argument: %s' % str(do_run_analysis_argument))
+    # # For debugging
+    # print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
+    # print('do_run_analysis_argument: %s' % str(do_run_analysis_argument))
 
     # Load the per-lab configuration file
     this_script_path = os.path.realpath(__file__)
@@ -1069,9 +1069,9 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     else :
         do_run_analysis = do_run_analysis_argument
 
-    # For debugging
-    print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
-    print('do_run_analysis: %s' % str(do_run_analysis))
+    # # For debugging
+    # print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
+    # print('do_run_analysis: %s' % str(do_run_analysis))
 
     # Add a "banner" to the start of the log
     tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
