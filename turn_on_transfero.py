@@ -35,7 +35,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     cluster_billing_account_name = configuration['cluster_billing_account_name']
     
     destination_folder_path = configuration['destination_folder']
-    escaped_destination_folder_path = shlex.quote(destination_folder_path)    
+    #escaped_destination_folder_path = shlex.quote(destination_folder_path)    
     transfero_logs_folder_path = os.path.join(destination_folder_path, 'transfero-logs') 
     escaped_transfero_logs_folder_path = shlex.quote(transfero_logs_folder_path) 
     
@@ -65,11 +65,10 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
 
     core_command_line = \
         '%s %s %s %s %s %s' % (escaped_launcher_script_path, 
-                            escaped_bash_profile_path,
-                            destination_folder_path, 
-                            transfero_script_path, 
-                            cluster_billing_account_name, 
-                            escaped_transfero_logs_folder_path) 
+                               escaped_bash_profile_path,
+                               transfero_script_path, 
+                               cluster_billing_account_name, 
+                               escaped_transfero_logs_folder_path) 
 
 #     core_command_line = \
 #         sprintf(['. /misc/lsf/conf/profile.lsf  ' \

@@ -1014,38 +1014,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
 
 
 
-def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None):
-    '''
-    TRANSFERO Transfer experiment folders from rig computers and analyze them.
-       transfero() transfers experiment folders from the specified rig
-       computers and then runs an analysis script on them.  What rig computers to
-       search, and a variety of other settings, are determined from the username of
-       the user running transfero().    
-    '''
-
-    # # For debugging
-    # print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
-    # print('do_run_analysis_argument: %s' % str(do_run_analysis_argument))
-
-    # Load the per-lab configuration file
-    this_script_path = os.path.realpath(__file__)
-    this_script_folder_path = os.path.dirname(this_script_path)
-    if configuration_or_configuration_file_name == None:
-        user_name = get_user_name()
-        configuration_file_name = '%s_configuration.yaml' % user_name
-        configuration_file_path = os.path.join(this_script_folder_path, configuration_file_name)
-        configuration = read_yaml_file_badly(configuration_file_path)
-        # with open(configuration_file_path, 'r') as stream:
-        #     configuration = yaml.safe_load(stream)
-    elif isinstance(configuration_or_configuration_file_name, str) :
-        configuration_file_name = configuration_or_configuration_file_name
-        configuration_file_path = os.path.abspath(configuration_file_name)
-        configuration = read_yaml_file_badly(configuration_file_path)
-        # with open(configuration_file_path, 'r') as stream:
-        #     configuration = yaml.safe_load(stream)
-    else:
-        configuration = configuration_or_configuration_file_name
-
+def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, this_script_path, this_script_folder_path):
     # Unpack the per-lab configuration dict
     cluster_billing_account_name = configuration['cluster_billing_account_name']
     host_name_from_rig_index = configuration['host_name_from_rig_index']
@@ -1058,16 +1027,6 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     to_process_folder_name = 'to-process' 
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
-
-    # Figure out what stages to run
-    if do_transfer_data_from_rigs_argument is None :
-        do_transfer_data_from_rigs = configuration['do_transfer_data_from_rigs']
-    else :
-        do_transfer_data_from_rigs = do_transfer_data_from_rigs_argument
-    if do_run_analysis_argument is None :
-        do_run_analysis = configuration['do_run_analysis']
-    else :
-        do_run_analysis = do_run_analysis_argument
 
     # # For debugging
     # print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
@@ -1147,6 +1106,72 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     print('\n') 
     print('********************************************************************************\n') 
     print('\n')    
+# end of transfero()
+
+
+
+def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None):
+    '''
+    TRANSFERO Transfer experiment folders from rig computers and analyze them.
+       transfero() transfers experiment folders from the specified rig
+       computers and then runs an analysis script on them.  What rig computers to
+       search, and a variety of other settings, are determined from the username of
+       the user running transfero().    
+    '''
+
+    # # For debugging
+    # print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
+    # print('do_run_analysis_argument: %s' % str(do_run_analysis_argument))
+
+    # Load the per-lab configuration file
+    this_script_path = os.path.realpath(__file__)
+    this_script_folder_path = os.path.dirname(this_script_path)
+    if configuration_or_configuration_file_name == None:
+        user_name = get_user_name()
+        configuration_file_name = '%s_configuration.yaml' % user_name
+        configuration_file_path = os.path.join(this_script_folder_path, configuration_file_name)
+        configuration = read_yaml_file_badly(configuration_file_path)
+        # with open(configuration_file_path, 'r') as stream:
+        #     configuration = yaml.safe_load(stream)
+    elif isinstance(configuration_or_configuration_file_name, str) :
+        configuration_file_name = configuration_or_configuration_file_name
+        configuration_file_path = os.path.abspath(configuration_file_name)
+        configuration = read_yaml_file_badly(configuration_file_path)
+        # with open(configuration_file_path, 'r') as stream:
+        #     configuration = yaml.safe_load(stream)
+    else:
+        configuration = configuration_or_configuration_file_name
+
+    # Unpack the per-lab configuration dict
+    cluster_billing_account_name = configuration['cluster_billing_account_name']
+    host_name_from_rig_index = configuration['host_name_from_rig_index']
+    rig_user_name_from_rig_index = configuration['rig_user_name_from_rig_index'] 
+    data_folder_path_from_rig_index = configuration['data_folder_path_from_rig_index'] 
+    destination_folder = configuration['destination_folder']     
+    # We support relative paths (relative to this script for analysis exectuables)
+    raw_analysis_executable_path = configuration['analysis_executable_path']
+    analysis_executable_path = abspath_relative_to_transfero(raw_analysis_executable_path)
+    to_process_folder_name = 'to-process' 
+    slots_per_analysis_job = configuration['slots_per_analysis_job']
+    maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
+
+    # Figure out what stages to run
+    if do_transfer_data_from_rigs_argument is None :
+        do_transfer_data_from_rigs = configuration['do_transfer_data_from_rigs']
+    else :
+        do_transfer_data_from_rigs = do_transfer_data_from_rigs_argument
+    if do_run_analysis_argument is None :
+        do_run_analysis = configuration['do_run_analysis']
+    else :
+        do_run_analysis = do_run_analysis_argument
+
+    # Don't want to run if transfero is already running, so check for lock file
+    lock_file_path = os.path.join(destination_folder, 'transfero.lock')
+    with LockFile(lock_file_path) as lock :
+        if lock.have_lock() :
+            transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, this_script_path, this_script_folder_path)
+        else :
+            raise RuntimeError('Lock file %s already exists.  Exiting.' % lock_file_path)
 # end of transfero()
 
 

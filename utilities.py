@@ -446,3 +446,30 @@ def read_yaml_file_badly(file_name) :
         result[key] = value
     return result
     
+
+
+class LockFile:
+    '''
+    Simple lock file implementation.  Definitely has the potential for race conditions, but
+    only anticipate Transfero being run every 24 hours, so should be ok.
+    '''
+    def __init__(self, file_name):
+        self._file_name = file_name 
+        self._have_lock = False
+
+    def __enter__(self):
+        file_name = self._file_name
+        if os.path.exists(file_name) :
+            pass
+        else :
+            open(file_name, 'w').close()
+            self._have_lock = True
+        return self
+
+    def __exit__(self, type, value, tb):
+        if self._have_lock :
+            file_name = self._file_name
+            os.remove(file_name)
+
+    def have_lock(self):
+        return self._have_lock    
