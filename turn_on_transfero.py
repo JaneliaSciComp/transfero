@@ -64,11 +64,11 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
 #     transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_file_name}" 
 
     core_command_line = \
-        '%s %s %s %s %s %s' % (escaped_launcher_script_path, 
-                               escaped_bash_profile_path,
-                               transfero_script_path, 
-                               cluster_billing_account_name, 
-                               escaped_transfero_logs_folder_path) 
+        '%s %s %s %s %s' % (escaped_launcher_script_path, 
+                            escaped_bash_profile_path,
+                            transfero_script_path, 
+                            cluster_billing_account_name, 
+                            escaped_transfero_logs_folder_path) 
 
 #     core_command_line = \
 #         sprintf(['. /misc/lsf/conf/profile.lsf  ' \
