@@ -19,11 +19,11 @@ def get_bjobs_lines(job_ids) :
         command_line = ['bjobs'] + job_ids_as_strings
         (status, stdout) = run_subprocess_and_return_code_and_stdout(command_line) 
         if status != 0 :
-            raise RuntimeError('There was a problem running the command "%s".  Return code: %d.  Stdout/stderr:\n%s' % str(command_line), status, stdout) 
+            raise RuntimeError('There was a problem running the command "%s".  Return code: %d.  Stdout/stderr:\n%s' % (str(command_line), status, stdout) )
             
         lines = stdout.split('\n')   # Want a list of lines
         if len(lines)<1 :
-            raise RuntimeError('There was a problem submitting the bjobs command "%s".  Unable to parse output.  Output was:\n%s', str(command_line), stdout) 
+            raise RuntimeError('There was a problem submitting the bjobs command "%s".  Unable to parse output.  Output was:\n%s', (str(command_line), stdout) ) 
         job_ids_this_batch_count = len(job_ids_this_batch) 
         bjobs_lines = lines[1:(job_ids_this_batch_count+1)]   # drop the header
         bjobs_lines_from_batch_index[batch_index] = bjobs_lines 
@@ -106,7 +106,7 @@ def get_bsub_job_status(job_ids) :
         running_job_id_as_string = tokens[0] 
         running_job_id = int(running_job_id_as_string) 
         if running_job_id != job_id :
-            raise RuntimeError('The running job id (%d) doesn''t match the job id (%d)', (running_job_id, job_id) ) 
+            raise RuntimeError('The running job id (%d) doesn''t match the job id (%d)' % (running_job_id, job_id) ) 
         lsf_status = tokens[2]   # Should be string like 'DONE', 'EXIT', 'RUN', 'PEND', etc.
         if lsf_status == 'DONE' :
             running_job_status_code = +1 
