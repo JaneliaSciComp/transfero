@@ -6,6 +6,8 @@ import subprocess
 import io
 import datetime
 import ast
+import copy
+
 
 
 class cd:
@@ -267,6 +269,19 @@ def ibbn(lst, pred) :
 
 
 
+def list_fif(pred, if_true, if_false) :
+    # If pred[i] is true, result[i] is set to if_true[i], otherwise result[i] is set to if_false[i].
+    n = len(pred)
+    result = [None] * n
+    for i in range(n) :
+        if pred[i]:
+            result[i] = if_true[i]
+        else :
+            result[i] = if_false[i]
+    return result
+
+
+
 def assign_where_true_bang(lst, pred, el) :
     # If pred[i] is true, lst[i] is set to el.
     # This mutates lst.
@@ -275,13 +290,28 @@ def assign_where_true_bang(lst, pred, el) :
             lst[i] = el
 
 
+
+def overlay_at(lst, index_from_other_index, new_value_from_other_index) :
+    '''
+    Replaces the values in lst at indices given by index_from_other_index with values taken from new_value_from_other_index.
+    lst is not mutated.
+    '''
+    other_index_count = len(new_value_from_other_index)
+    result = copy.deepcopy(lst)
+    for other_index in range(other_index_count) :
+        index = index_from_other_index[other_index]
+        result[index] = new_value_from_other_index[other_index]
+    return result
+
+
+
 def elementwise_list_and(a, b) :
-  return [ (el_a and el_b) for (el_a,el_b) in zip(a, b) ]
+    return [ (el_a and el_b) for (el_a,el_b) in zip(a, b) ]
 
 
 
 def elementwise_list_or(a, b) :
-  return [ (el_a or el_b) for (el_a,el_b) in zip(a, b) ]
+    return [ (el_a or el_b) for (el_a,el_b) in zip(a, b) ]
 
 
 
@@ -333,27 +363,27 @@ class spinner_object :
         if not self.is_mute :
             if self.is_first_call :
                 cursor = self.cursors[self.cursor_index]
-                print(cursor) 
+                printf(cursor) 
                 self.is_first_call = False 
             else :
-                print('\b')
+                printf('\b')
                 self.cursor_index = (self.cursor_index + 1) 
                 if self.cursor_index >= self.cursor_count :
                     self.cursor_index = 0 
                 cursor = self.cursors[self.cursor_index]
-                print(cursor)
+                printf(cursor)
 
     def print(self, *varargin) :
         # Want things printed during spinning to look nice
         if not self.is_mute :
-            print('\b\n')   # Delete cursor, then newline
-            print(*varargin)   # print whatever
+            printf('\b\n')   # Delete cursor, then newline
+            printf(*varargin)   # print whatever
             cursor = self.cursors[self.cursor_index]   # get the same cursor back
-            print(cursor)   # write it again on its own line
+            printf(cursor)   # write it again on its own line
 
     def stop(self) :
         if not self.is_mute :
-            print('\bdone.\n')
+            printf('\bdone.\n')
 
 
 
@@ -395,6 +425,7 @@ class progress_bar_object :
                 printf('\n') 
                 self.did_print_final_newline_ = True 
         self.percent_as_displayed_last_ = percent_as_displayed 
+
 
 
 

@@ -14,6 +14,11 @@ from fuster import *
 
 
 
+# # Use line-buffering on stdout (has to work with Python 3.6)
+# sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
+
+
+
 def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command_line_as_list) :
     '''
     Run the system command, but taking a list of tokens rather than a string, and
@@ -948,7 +953,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
             stdouterr_file_path = os.path.join(experiment_folder_path, 'transfero-analysis.log')
             bsub_job_name = '%s-transfero-%d' % (cluster_billing_account_name, experiment_index)
             bsub_options_as_list = [ '-P', cluster_billing_account_name, '-J', bsub_job_name ]
-            bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)   # the 20 is an arg to pause()
+            bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)
         maximum_wait_time = math.inf
         do_show_progress_bar = True 
         tic_id = tic() 
@@ -1106,7 +1111,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     print('\n') 
     print('********************************************************************************\n') 
     print('\n')    
-# end of transfero()
+# end of transfero_core()
 
 
 

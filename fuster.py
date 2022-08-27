@@ -199,99 +199,113 @@ def bsub(command_line_as_list, do_actually_submit=True, slot_count=1, stdouterr_
 
 
 
-class bqueue_type :
-    # properties (SetAccess = private)
-    #     do_actually_submit = true
-    #     bsub_option_list_from_job_index = cell(1,0) 
-    #     function_handle = cell(1,0)
-    #     other_arguments = cell(1,0)
-    #     %job_status = nan(1,0) 
-    #     maximum_running_slot_count = inf        
-    #     slot_count_from_job_index = zeros(1,0) 
-    #     job_ids = zeros(1,0)
-    #     has_job_been_submitted = false(1,0)
-    #     %in_use_slot_count = 0 
-    #     stdouterr_file_name_from_job_index = cell(1,0) 
-    #     do_use_xvfb = false 
-    # end
-    
+def update_job_status_from_job_index(old_job_status_from_job_index, job_id_from_job_index) :
+    '''
+    Calls get_bsub_job_status() on in-progress jobs to generate an updated job_status_from_job_index.
+    Note that this is does *not* mutate the input at all.
+    Ideally we could just call get_bsub_job_status() on all the jobs, but if the "conductor" jobs runs for a long time,
+    bjobs will eventually throw errors because it has forgotten about long-completed jobs.
+    '''
+    was_in_progress_from_job_index = [ job_status==0 for job_status in old_job_status_from_job_index ]
+    job_id_from_was_in_progress_job_index = ibb(job_id_from_job_index, was_in_progress_from_job_index)
+    job_status_from_was_in_progress_job_index = get_bsub_job_status(job_id_from_was_in_progress_job_index)
+    job_index_from_was_in_progress_job_index = where(was_in_progress_from_job_index)
+    job_status_from_job_index = overlay_at(old_job_status_from_job_index, job_index_from_was_in_progress_job_index, job_status_from_was_in_progress_job_index)
+    return job_status_from_job_index
+
+
+
+class bqueue_type :    
     def __init__(self, do_actually_submit=True, maximum_running_slot_count=math.inf) :
-        self.bsub_option_list_from_job_index = []
-        self.command_line_as_list = [] 
-        self.slot_count_from_job_index = []
-        self.job_ids = []
-        self.has_job_been_submitted = []
-        self.stdouterr_file_name_from_job_index = []
-        self.do_actually_submit = do_actually_submit 
-        self.maximum_running_slot_count = maximum_running_slot_count 
+        self._bsub_option_list_from_job_index = []
+        self._command_line_as_list = [] 
+        self._slot_count_from_job_index = []
+        self._job_id_from_job_index = []
+        self._has_been_submitted_from_job_index = []
+        self._stdouterr_file_name_from_job_index = []
+        self._do_actually_submit = do_actually_submit 
+        self._maximum_running_slot_count = maximum_running_slot_count 
+        self._job_status_from_job_index = []
         
     def queue_length(self) :
-        result = len(self.has_job_been_submitted) 
+        result = len(self._has_been_submitted_from_job_index) 
         return result
     
     def enqueue(self, slot_count, stdouterr_file_name, bsub_options_as_list, command_line_as_list) :
         job_index = self.queue_length() + 1
-        self.command_line_as_list.append(command_line_as_list)
-        self.job_ids.append(math.nan)
-        self.has_job_been_submitted.append(False)            
-        self.slot_count_from_job_index.append(slot_count)
-        self.stdouterr_file_name_from_job_index.append(stdouterr_file_name)
-        self.bsub_option_list_from_job_index.append(bsub_options_as_list)
+        self._command_line_as_list.append(command_line_as_list)
+        self._job_id_from_job_index.append(math.nan)
+        self._has_been_submitted_from_job_index.append(False)            
+        self._slot_count_from_job_index.append(slot_count)
+        self._stdouterr_file_name_from_job_index.append(stdouterr_file_name)
+        self._bsub_option_list_from_job_index.append(bsub_options_as_list)
+        self._job_status_from_job_index.append(math.nan)
     
     def run(self, maximum_wait_time=math.inf, do_show_progress_bar=True) :
-        # Possible job_statuses are {-1,0,+1}.
+        # Possible job_statuses are {-1,0,+1,math.nan}.
         #   -1 means errored out
         #    0 mean running or pending
-        #   +1 means completed successfully            
-
+        #   +1 means completed successfully
+        #   math.nan means not yet submitted
+        
         have_all_exited = False 
         is_time_up = False 
         job_count = self.queue_length() 
+        job_status_from_job_index = self._job_status_from_job_index
         if do_show_progress_bar :
             progress_bar = progress_bar_object(job_count) 
-        last_exited_job_count = 0 
         ticId = tic() 
         while not have_all_exited and not is_time_up :
-            old_job_ids = self.job_ids                 
-            job_statuses = get_bsub_job_status(old_job_ids)  
-            is_job_in_progress = elementwise_list_and(self.has_job_been_submitted, [job_status==0 for job_status in job_statuses])
-            carryover_slot_count = sum(ibb(self.slot_count_from_job_index,is_job_in_progress)) 
-            maximum_new_slot_count = self.maximum_running_slot_count - carryover_slot_count 
+            old_job_status_from_job_index = job_status_from_job_index
+            job_status_from_job_index = update_job_status_from_job_index(old_job_status_from_job_index, self._job_id_from_job_index)
+            is_in_progress_from_job_index = [ job_status==0 for job_status in job_status_from_job_index ]
+            carryover_slot_count = sum(ibb(self._slot_count_from_job_index, is_in_progress_from_job_index)) 
+            maximum_new_slot_count = self._maximum_running_slot_count - carryover_slot_count 
             if maximum_new_slot_count > 0 :
-                is_submittable_from_job_index = [ (not el) for el in self.has_job_been_submitted ]
+                is_submittable_from_job_index = [ math.isnan(job_status) for job_status in job_status_from_job_index ]
                 job_index_from_submittable_index = where(is_submittable_from_job_index) 
-                slot_count_from_submittable_index = ibl(self.slot_count_from_job_index, job_index_from_submittable_index)
+                slot_count_from_submittable_index = ibl(self._slot_count_from_job_index, job_index_from_submittable_index)
                 will_submit_from_submittable_index = determine_which_jobs_to_submit(slot_count_from_submittable_index, maximum_new_slot_count) 
                 job_indices_to_submit = ibb(job_index_from_submittable_index, will_submit_from_submittable_index) 
                 jobs_to_submit_count = len(job_indices_to_submit) 
                 for i in range(jobs_to_submit_count) :
                     job_index = job_indices_to_submit[i] 
-                    command_line_as_list = self.command_line_as_list[job_index]
-                    this_slot_count = self.slot_count_from_job_index[job_index]
-                    this_stdouterr_file_name = self.stdouterr_file_name_from_job_index[job_index]
-                    this_bsub_options_as_list = self.bsub_option_list_from_job_index[job_index]
+                    command_line_as_list = self._command_line_as_list[job_index]
+                    this_slot_count = self._slot_count_from_job_index[job_index]
+                    this_stdouterr_file_name = self._stdouterr_file_name_from_job_index[job_index]
+                    this_bsub_options_as_list = self._bsub_option_list_from_job_index[job_index]
                     this_job_id = \
                         bsub(command_line_as_list, 
-                             self.do_actually_submit,
+                             self._do_actually_submit,
                              this_slot_count,
                              this_stdouterr_file_name,
                              this_bsub_options_as_list) 
-                    self.job_ids[job_index] = this_job_id 
-                    self.has_job_been_submitted[job_index] = True 
-                    is_job_in_progress[job_index] = self.do_actually_submit 
-            has_job_exited = elementwise_list_and(self.has_job_been_submitted, elementwise_list_not(is_job_in_progress))
-            exited_job_count = sum(has_job_exited) 
+                    self._job_id_from_job_index[job_index] = this_job_id 
+                    if self._do_actually_submit :
+                        job_status_from_job_index [job_index] = 0  # means running or pending 
+                    else :
+                        # This means the job was run locally, and has already either succeeded or failed
+                        # In this case the value returned from bsub() indicates which.
+                        if this_job_id == -1 :
+                            job_status_from_job_index [job_index] = +1
+                        elif this_job_id == -2 :
+                            job_status_from_job_index [job_index] = -1
+                        else :
+                            raise RuntimeError('Programming error')
+            has_job_exited = [ (job_status==-1 or job_status==+1) for job_status in job_status_from_job_index ]  
+            exited_job_count = sum(has_job_exited)
+            had_job_exited = [ (job_status==-1 or job_status==+1) for job_status in old_job_status_from_job_index ]  
+            last_exited_job_count = sum(had_job_exited)
             newly_exited_job_count = exited_job_count - last_exited_job_count 
             if do_show_progress_bar :
                 progress_bar.update(newly_exited_job_count) 
             have_all_exited = (exited_job_count==job_count) 
+            self._job_status_from_job_index = job_status_from_job_index  # not necessary, but nice to keep things up to date
             if not have_all_exited :
-                if self.do_actually_submit :
+                if self._do_actually_submit :
                     time.sleep(1) 
                 is_time_up = (toc(ticId) > maximum_wait_time) 
-            last_exited_job_count = exited_job_count 
-        job_statuses = get_bsub_job_status(self.job_ids) 
-        return job_statuses
+        return job_status_from_job_index
 
 
 
@@ -332,7 +346,7 @@ def test_bqueue() :
 
     job_count = 10 
     for job_index in range(job_count) :
-        bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)   # the 20 is an arg to pause()
+        bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)
 
     maximum_wait_time = 200 
     do_show_progress_bar = True 
