@@ -3,7 +3,7 @@
 import os
 import shlex
 
-from utilities import *
+from tpt.utilities import *
 from transfero import *
 from turn_off_transfero import *
 

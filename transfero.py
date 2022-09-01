@@ -9,8 +9,8 @@ import subprocess
 import shlex
 import traceback
 import math
-from utilities import *
-from fuster import *
+from tpt.utilities import *
+from tpt.fuster import *
 
 
 

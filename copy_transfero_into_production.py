@@ -2,7 +2,7 @@
 
 import os
 
-from utilities import *
+from tpt.utilities import *
 from transfero import *
 
 
