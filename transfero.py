@@ -780,19 +780,18 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     relative_path_from_synched_experiment_index = ibb(relative_path_from_unaborted_experiment_folder_index, did_synch_from_unaborted_experiment_folder_index)
     synched_experiment_count = len(relative_path_from_synched_experiment_index) 
     did_delete_from_synched_experiment_index = [False] * synched_experiment_count 
-    for i in range(unaborted_experiment_folder_count) :
-        if did_synch_from_unaborted_experiment_folder_index[i] :
-            experiment_folder_relative_path = relative_path_from_unaborted_experiment_folder_index[i] 
-            source_folder_absolute_path = os.path.join(source_root_absolute_path, experiment_folder_relative_path) 
-            try :
-                delete_remote_folder(source_user_name, source_host_name, source_folder_absolute_path) 
-                did_delete_from_synched_experiment_index[i] = True 
-            except Exception as e :
-                print('There was a problem during the post-synch deletion of source experiment folder\n  %s' %
-                      source_folder_absolute_path) 
-                print(repr(e))     
-                tb = e.__traceback__
-                traceback.print_tb(tb, file=sys.stdout)
+    for synched_experiment_index in range(synched_experiment_count) :
+        experiment_folder_relative_path = relative_path_from_synched_experiment_index[synched_experiment_index] 
+        source_folder_absolute_path = os.path.join(source_root_absolute_path, experiment_folder_relative_path) 
+        try :
+            delete_remote_folder(source_user_name, source_host_name, source_folder_absolute_path) 
+            did_delete_from_synched_experiment_index[synched_experiment_index] = True 
+        except Exception as e :
+            print('There was a problem during the post-synch deletion of source experiment folder\n  %s' %
+                    source_folder_absolute_path) 
+            print(repr(e))     
+            tb = e.__traceback__
+            traceback.print_tb(tb, file=sys.stdout)
     
     # print the number of experiment folders copied
     deleted_experiment_folder_count = sum(did_delete_from_synched_experiment_index) 
@@ -812,7 +811,6 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
 #     end
     
     # Return the synched experiments, whether or not they were deleted
-    relative_path_from_synched_experiment_index = ibb(relative_path_from_unaborted_experiment_folder_index, did_synch_from_unaborted_experiment_folder_index)
     return relative_path_from_synched_experiment_index
 # end remote_sync_verify_and_delete_experiment_folders
 
