@@ -31,6 +31,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     per_lab_configuration['rig_user_name_from_rig_index'] = [rig_user_name] 
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
+    per_lab_configuration['log_file_name'] = 'flydisco-analysis-log.txt'
     per_lab_configuration['analysis_executable_path'] = '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'
     per_lab_configuration['slots_per_analysis_job'] = 4
     per_lab_configuration['maximum_analysis_slot_count'] = 400

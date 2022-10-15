@@ -1030,7 +1030,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     to_process_folder_name = 'to-process' 
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
-    log_file_name = configuration['log_file_names']
+    log_file_name = configuration['log_file_name']
 
     # # For debugging
     # print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
