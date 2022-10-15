@@ -4,4 +4,11 @@ rig_user_name_from_rig_index: [ 'bransonk', 'bransonk', 'bransonk', 'bransonk' ]
 data_folder_path_from_rig_index: [ '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson', '/cygdrive/e/flydisco_data/branson' ]
 destination_folder: '/groups/branson/bransonlab/flydisco_data'
 does_use_per_user_folders: False 
-analysis_executable_path: '/bin/echo'
+analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
+  # this is interpreted relative to folder containing transfero.py
+slots_per_analysis_job: 4
+maximum_analysis_slot_count: 400
+do_transfer_data_from_rigs: True
+do_run_analysis: True
+launch_hour: 22
+launch_minute: 0
