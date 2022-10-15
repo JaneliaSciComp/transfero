@@ -40,15 +40,11 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     relative_path_to_folder_from_experiment_index = \
         [os.path.relpath(abs_path, read_only_example_experiments_folder_path) for abs_path in absolute_path_to_read_only_folder_from_experiment_index]
 
-    # Delete the destination folder
+    # Delete the destination folder, then create it
     if os.path.exists(transfero_destination_folder_path) :
         run_subprocess_live(['rm', '-rf', transfero_destination_folder_path]) 
-
-    # # Recopy the analysis test folder from the template
-    # print('Resetting analysis test folder...\n') 
-    # read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'test-transfero-example-experiments-folder') 
-    # reset_transfero_example_experiments_working_copy_folder(read_only_example_experiments_folder_path, read_only_example_experiments_folder_path) 
-
+    os.makedirs(transfero_destination_folder_path, exist_ok=True) 
+    
     # Copy it to the rig computer (or just direct to the destination folder)
     if do_transfer_data_from_rigs :
         print('Transfering data to the rig computer...')  

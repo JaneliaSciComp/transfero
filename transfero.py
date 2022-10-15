@@ -926,12 +926,11 @@ def local_verify(source_path, dest_path) :
 
 
 
-def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_job, maximum_slot_count) :
+def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_job, 
+                                         maximum_slot_count, log_file_name) :
     # Specify job/cluster parameters
     do_use_fuster = True
     do_run_on_cluster = True
-    #maximum_slot_count = 480
-    #slots_per_job = 48
 
     # Report how many experiments are to be analyzed
     experiment_count = len(folder_path_from_experiment_index)
@@ -948,7 +947,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
         for experiment_index in range(experiment_count) :
             experiment_folder_path = folder_path_from_experiment_index[experiment_index]
             command_line_as_list = [analysis_executable_path, experiment_folder_path]
-            stdouterr_file_path = os.path.join(experiment_folder_path, 'transfero-analysis.log')
+            stdouterr_file_path = os.path.join(experiment_folder_path, log_file_name)
             bsub_job_name = '%s-transfero-%d' % (cluster_billing_account_name, experiment_index)
             bsub_options_as_list = [ '-P', cluster_billing_account_name, '-J', bsub_job_name ]
             bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)
@@ -1031,6 +1030,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     to_process_folder_name = 'to-process' 
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
+    log_file_name = configuration['log_file_names']
 
     # # For debugging
     # print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
@@ -1087,7 +1087,8 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
         folder_path_from_experiment_index = [ os.path.realpath(experiment_folder_link_path) for experiment_folder_link_path in link_path_from_experiment_index ]
 
         # Submit the per-experiment analysis jobs to the cluster
-        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_analysis_job, maximum_analysis_slot_count)
+        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_analysis_job, 
+                                             maximum_analysis_slot_count, log_file_name)
         
         # Whether those succeeded or failed, remove the links from the
         # to-process folder
