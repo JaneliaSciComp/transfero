@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "test_transfero.py",
+            "name": "test_transfero_on_branson_rig.py",
             "type": "python",
             "request": "launch",
-            "program": "test_transfero.py",
+            "program": "test_transfero_on_branson_rig.py",
             "console": "integratedTerminal",
             "justMyCode": true
         } ,

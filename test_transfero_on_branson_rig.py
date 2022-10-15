@@ -10,7 +10,8 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     this_folder_path = os.path.dirname(this_script_path)
     project_folder_path = os.path.dirname(this_folder_path) 
     root_example_experiments_folder_path = os.path.join(project_folder_path, 'example-experiments') 
-    read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-katie-experiment-2022-04-05-read-only') 
+    read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-short-video-experiment-read-only') 
+    #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-katie-experiment-2022-04-05-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'passing-test-suite-experiments-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'single-passing-test-suite-experiment-with-tracking-read-only') 
     #read_only_example_experiments_folder_path = os.path.join(root_example_experiments_folder_path, 'passing-test-suite-experiments-with-tracking-read-only') 
@@ -30,9 +31,9 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     per_lab_configuration['rig_user_name_from_rig_index'] = [rig_user_name] 
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
-    per_lab_configuration['analysis_executable_path'] = '/bin/echo'
-    per_lab_configuration['slots_per_analysis_job'] = 1
-    per_lab_configuration['maximum_analysis_slot_count'] = 10
+    per_lab_configuration['analysis_executable_path'] = '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'
+    per_lab_configuration['slots_per_analysis_job'] = 4
+    per_lab_configuration['maximum_analysis_slot_count'] = 400
 
     # Get the relative paths of all the experiment folders
     absolute_path_to_read_only_folder_from_experiment_index = find_experiment_folders(read_only_example_experiments_folder_path) 
