@@ -927,7 +927,7 @@ def local_verify(source_path, dest_path) :
 
 
 def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_job, 
-                                         maximum_slot_count, log_file_name) :
+                                         maximum_slot_count, log_file_name, user_name_for_configuration_purposes) :
     # Specify job/cluster parameters
     do_use_fuster = True
     do_run_on_cluster = True
@@ -946,7 +946,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
         bqueue = bqueue_type(do_run_on_cluster, maximum_slot_count) 
         for experiment_index in range(experiment_count) :
             experiment_folder_path = folder_path_from_experiment_index[experiment_index]
-            command_line_as_list = [analysis_executable_path, experiment_folder_path]
+            command_line_as_list = [analysis_executable_path, experiment_folder_path, user_name_for_configuration_purposes]
             stdouterr_file_path = os.path.join(experiment_folder_path, log_file_name)
             bsub_job_name = '%s-transfero-%d' % (cluster_billing_account_name, experiment_index)
             bsub_options_as_list = [ '-P', cluster_billing_account_name, '-J', bsub_job_name ]
@@ -963,7 +963,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
         job_status_from_experiment_index = [ math.nan ] * experiment_count
         for i in range(experiment_count) :
             experiment_folder_path = folder_path_from_experiment_index[experiment_index]
-            command_line_as_list = [analysis_executable_path, experiment_folder_path]
+            command_line_as_list = [analysis_executable_path, experiment_folder_path, user_name_for_configuration_purposes]
             rc = run_subprocess_live(command_line_as_list, check=False)
             job_status = +1 if (rc==0) else -1
             job_status_from_experiment_index[i] = job_status
@@ -1014,6 +1014,8 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
     if experiment_count > 0 :
         print("Elapsed time for analysis was %0.1f seconds" % elapsed_time)
 
+    # Return the status of all the analysis jobs
+    return job_status_from_experiment_index
 
 
 def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path):
@@ -1025,6 +1027,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     destination_folder = configuration['destination_folder']     
     # We support relative paths (relative to this script for analysis exectuables)
     raw_analysis_executable_path = configuration['analysis_executable_path']
+    user_name_for_configuration_purposes = configuration['user_name_for_configuration_purposes']
     analysis_executable_path = \
         os.path.realpath(os.path.join(transfero_root_folder_path, raw_analysis_executable_path))
     to_process_folder_name = 'to-process' 
@@ -1076,6 +1079,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                 traceback.print_tb(tb, file=sys.stdout)
     else :
         print('Skipping transfer of data from rigs.') 
+        relative_path_from_synched_experiment_folder_index = []
     
     # Run the analysis script on links in the to-process folder
     if do_run_analysis :
@@ -1087,8 +1091,9 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
         folder_path_from_experiment_index = [ os.path.realpath(experiment_folder_link_path) for experiment_folder_link_path in link_path_from_experiment_index ]
 
         # Submit the per-experiment analysis jobs to the cluster
-        transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_analysis_job, 
-                                             maximum_analysis_slot_count, log_file_name)
+        job_status_from_experiment_index = \
+            transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_analysis_job, 
+                                                 maximum_analysis_slot_count, log_file_name, user_name_for_configuration_purposes)
         
         # Whether those succeeded or failed, remove the links from the
         # to-process folder
@@ -1101,6 +1106,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                 os.remove(experiment_folder_link_path) 
     else :
         print('Skipping analysis.') 
+        job_status_from_experiment_index =[]
     
     # Want the start and end of a single transfero run to be clear in the log
     print('\n') 
@@ -1110,6 +1116,9 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     print('\n') 
     print('********************************************************************************\n') 
     print('\n')    
+
+    # Return some stuff
+    return (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index)
 # end of transfero_core()
 
 
@@ -1174,9 +1183,12 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     lock_file_path = os.path.join(destination_folder, 'transfero.lock')
     with LockFile(lock_file_path) as lock :
         if lock.have_lock() :
-            transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path)
+            (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index) = \
+                transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path)
         else :
             raise RuntimeError('Lock file %s already exists.  Exiting.' % lock_file_path)
+
+    return (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index)        
 # end of transfero()
 
 

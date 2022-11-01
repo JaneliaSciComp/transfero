@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "test_transfero_on_rubin_rig_flybubble_ww1.py",
+            "type": "python",
+            "request": "launch",
+            "program": "test_transfero_on_rubin_rig_flybubble_ww1.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        } ,
+        {
             "name": "test_transfero_on_branson_rig.py",
             "type": "python",
             "request": "launch",

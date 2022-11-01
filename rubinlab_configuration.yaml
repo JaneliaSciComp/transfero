@@ -1,0 +1,16 @@
+cluster_billing_account_name: 'rubin'
+host_name_from_rig_index: [ 'flybowl-ww1.hhmi.org', 'flybowl-ww3.hhmi.org', 'flybubble-ww1.hhmi.org', 'flybubble-ww2.hhmi.org' ]
+rig_user_name_from_rig_index: [ 'labadmin', 'labadmin', 'labadmin', 'labadmin' ]
+data_folder_path_from_rig_index: [ '/cygdrive/e/flydisco_data/rubin', '/cygdrive/e/flydisco_data/rubin', '/cygdrive/d/flydisco_data/rubin', '/cygdrive/d/flydisco_data/rubin' ]
+destination_folder: '/groups/rubin/data0/rubinlab/flydisco_data'
+does_use_per_user_folders: True 
+log_file_name: 'flydisco-analysis-log.txt'
+user_name_for_configuration_purposes: 'rubinlab'
+analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
+  # this is interpreted relative to folder containing transfero.py
+slots_per_analysis_job: 4
+maximum_analysis_slot_count: 400
+do_transfer_data_from_rigs: True
+do_run_analysis: True
+launch_hour: 22
+launch_minute: 0
