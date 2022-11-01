@@ -1018,6 +1018,7 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
     return job_status_from_experiment_index
 
 
+
 def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path):
     # Unpack the per-lab configuration dict
     cluster_billing_account_name = configuration['cluster_billing_account_name']
@@ -1051,6 +1052,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     print('\n')     
 
     # Get info about the state of the repo, output to log
+    print('Transfero repository state:')
     git_report = get_git_report(transfero_root_folder_path) 
     print(git_report) 
     
