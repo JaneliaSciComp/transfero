@@ -9,6 +9,9 @@ date_as_string=`date +%Y-%m-%d`
 transfero_log_file_name="transfero-${date_as_string}.log"
 transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_file_name}"
 
+# Ensure that the log folder exists
+/usr/bin/mkdir -p "${escaped_transfero_logs_folder_path}"
+
 . /misc/lsf/conf/profile.lsf
 . ${escaped_bash_profile_path}
 #conda activate transfero
