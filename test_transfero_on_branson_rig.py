@@ -32,6 +32,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     per_lab_configuration['data_folder_path_from_rig_index'] = [rig_data_folder_path]
     per_lab_configuration['destination_folder'] = transfero_destination_folder_path     
     per_lab_configuration['log_file_name'] = 'flydisco-analysis-log.txt'
+    per_lab_configuration['user_name_for_configuration_purposes'] = 'bransonlab'
     per_lab_configuration['analysis_executable_path'] = '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'
     per_lab_configuration['slots_per_analysis_job'] = 4
     per_lab_configuration['maximum_analysis_slot_count'] = 400
@@ -74,10 +75,22 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     # Run transfero
     #analysis_parameters = { 'doautomaticcheckscomplete', 'on' } 
     print('Running transfero...') 
-    transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)
+    (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index) = \
+        transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)
 
-    # Check that the expected files are present on dm11
+    # Check that the original files are present on dm11
+    print('Verifying round 1...') 
     local_verify(read_only_example_experiments_folder_path, transfero_destination_folder_path) 
+
+    # Check the return values from transfero()
+    if len(relative_path_from_synched_experiment_folder_index)==1 and len(job_status_from_experiment_index)==1 and all(job_status==+1 for job_status in job_status_from_experiment_index) :
+        # all is well
+        pass
+    else :
+        print('relative_path_from_synched_experiment_folder_index: ', relative_path_from_synched_experiment_folder_index)
+        print('job_status_from_experiment_index: ', job_status_from_experiment_index)
+        raise RuntimeError('It seems transfero had issues')
+
 
     # # Check that some of the expected outputs were generated
     # all_tests_passed_from_experiment_index = check_for_pipeline_output_files(relative_path_to_folder_from_experiment_index, transfero_destination_folder_path) 
@@ -103,10 +116,22 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
                                (rig_host_name, rig_data_folder_path, experiment_folder_count))
 
     # Run transfero again, make sure nothing has changed
-    transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
+    (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index) = \
+        transfero(do_transfer_data_from_rigs, do_run_analysis, per_lab_configuration)         
 
     # Check that the expected files are present on dm11
+    print('Verifying round 2...') 
     local_verify(read_only_example_experiments_folder_path, transfero_destination_folder_path) 
+
+    # Check the return values from transfero()
+    # Both should be empty b/c there was nothing to do on the re-run
+    if len(relative_path_from_synched_experiment_folder_index)==0 and len(job_status_from_experiment_index)==0 :
+        # all is well
+        pass
+    else :
+        print('relative_path_from_synched_experiment_folder_index: ', relative_path_from_synched_experiment_folder_index)
+        print('job_status_from_experiment_index: ', job_status_from_experiment_index)
+        raise RuntimeError('It seems transfero had issues')
 
     # # Check that some of the expected outputs were generated
     # all_tests_passed_from_experiment_index = check_for_pipeline_output_files(relative_path_to_folder_from_experiment_index, transfero_destination_folder_path) 
