@@ -4,6 +4,7 @@ rig_user_name_from_rig_index: [ 'labadmin' ]
 data_folder_path_from_rig_index: [ '/cygdrive/e/flydisco_data/projtechres' ]
 destination_folder: '/groups/projtechres/projtechres/flydisco_data'
 log_file_name: 'flydisco-analysis-log.txt'
+user_name_for_configuration_purposes: 'projtechreslab'
 analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
   # this is interpreted relative to folder containing transfero.py
 slots_per_analysis_job: 4

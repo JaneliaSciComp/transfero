@@ -4,7 +4,7 @@ rig_user_name_from_rig_index: [ 'ASOLAB-WW1+labadmin', 'DEEPMIND-WW1+labadmin' ]
 data_folder_path_from_rig_index: [ '/cygdrive/d/Data', '/cygdrive/c/Data' ]
 destination_folder: '/groups/aso/asolab/transfero-data'
 log_file_name: 'transfero-analysis.log'
-#analysis_executable_path: '/bin/echo'
+user_name_for_configuration_purposes: 'asorobot'
 analysis_executable_path: '../aso-deepmind-experiment-analysis-pipeline/aso_deepmind_experiment_analysis_pipeline.py'  
   # this is interpreted relative to folder containing transfero.py
 slots_per_analysis_job: 48
