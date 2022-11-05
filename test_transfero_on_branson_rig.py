@@ -107,7 +107,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     # Check that the rig lab folder is empty now
     if do_transfer_data_from_rigs :
         (relative_path_from_experiment_folder_index, _) = \
-            find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path, 'to-process')
+            find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path)
         experiment_folder_count = len(relative_path_from_experiment_folder_index)
         if experiment_folder_count > 0 :
             print("Experiment(s) that still exist on the remote machine:")
@@ -146,7 +146,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     # Check that the rig lab folder is empty now
     if do_transfer_data_from_rigs :
         (relative_path_from_experiment_folder_index, _) = \
-            find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path, 'to-process')
+            find_remote_experiment_folders(rig_user_name, rig_host_name, rig_data_folder_path)
         experiment_folder_count = len(relative_path_from_experiment_folder_index)
         if experiment_folder_count > 0 :
             print("Experiment(s) that still exist on the remote machine:\n")

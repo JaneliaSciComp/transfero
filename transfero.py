@@ -3,7 +3,6 @@
 import sys
 import os
 import datetime
-#import yaml
 import time
 import subprocess
 import shlex
@@ -20,13 +19,13 @@ from tpt.fuster import *
 
 
 def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command_line_as_list) :
-    '''
+    """
     Run the system command, but taking a list of tokens rather than a string, and
-    running on a remote host.  Uses ssh, which needs to be set up for passowrdless
+    running on a remote host.  Uses ssh, which needs to be set up for passwordless
     login as the indicated user.
     Each element of command_line_as_list is escaped for bash, then composed into a
     single string, then submitted to system_with_error_handling().
-    '''
+    """
 
     # Escape all the elements of command_line_as_list
     escaped_remote_command_line_as_list = [shlex.quote(el) for el in remote_command_line_as_list] 
@@ -35,7 +34,7 @@ def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command
     remote_command_line = space_out(escaped_remote_command_line_as_list)
 
     # Command line
-    command_line_as_list = ['ssh', '-l', user_name, host_name, remote_command_line] ; 
+    command_line_as_list = ['ssh', '-l', user_name, host_name, remote_command_line]
     
     # Actually run the command
     stdout = run_subprocess_and_return_stdout(command_line_as_list)
@@ -46,7 +45,7 @@ def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command
 def does_remote_file_exist(user_name, host_name, path) :
     escaped_source_path = shlex.quote(path) 
     remote_stat_command_line = 'test -a ' + escaped_source_path 
-    command_line_as_list = ['/usr/bin/ssh', user_name+'@'+host_name, remote_stat_command_line] ;
+    command_line_as_list = ['/usr/bin/ssh', user_name+'@'+host_name, remote_stat_command_line]
     [return_code, stdout] = run_subprocess_and_return_code_and_stdout(command_line_as_list)
     if return_code == 0 :
         does_exist = True 
@@ -109,16 +108,16 @@ def copy_file_from_remote(source_user, source_host, source_path, dest_path) :
     [scp_return_code, scp_stdout] = run_subprocess_and_return_code_and_stdout(command_line) 
     # scp doesn't honor the user's umask, so we need to set the file
     # permissions explicitly
-    if scp_return_code == 0:
-        command_line = [ '/bin/chmod', 'u+rw-x,g+rw-x,o+r-wx', dest_path ]
-        [chmod_return_code, chmod_stdout] = run_subprocess_and_return_code_and_stdout(command_line) 
-    elapsed_time = time.time() - start_time
-    if scp_return_code != 0 :
-        raise CopyFileFromRemoteFailedError('Unable to copy the file %s as remote user %s from host %s to destination %s:\n%s' %
-                                            (source_path, source_user, source_host, dest_path, scp_stdout) ) 
-    elif chmod_return_code != 0 :
+    if scp_return_code != 0:
+        raise CopyFileFromRemoteFailedError(
+            'Unable to copy the file %s as remote user %s from host %s to destination %s:\n%s' %
+            (source_path, source_user, source_host, dest_path, scp_stdout))
+    command_line = [ '/bin/chmod', 'u+rw-x,g+rw-x,o+r-wx', dest_path ]
+    [chmod_return_code, chmod_stdout] = run_subprocess_and_return_code_and_stdout(command_line)
+    if chmod_return_code != 0 :
         raise CopyFileFromRemoteFailedError('Unable to set the permissions of %s after copy:\n%s' %
                                             (dest_path, chmod_stdout) ) 
+    elapsed_time = time.time() - start_time
     return elapsed_time
 
 
@@ -159,12 +158,12 @@ def list_remote_dir(source_user, source_host, source_path) :
     lines_raw = completed_process.stdout.strip().splitlines()
     lines = lines_raw[1:]  # drop 1st line
     line_count = len(lines) 
-    file_names = [None] * line_count
+    file_names = [''] * line_count
     file_sizes_in_bytes = [0] * line_count
     is_file = [False] * line_count
     is_dir = [False] * line_count
     is_link = [False] * line_count
-    mod_time = [None] * line_count
+    mod_time = [datetime.datetime.now()] * line_count
     for i in range(line_count) :
         line = lines[i] 
         (name, size_in_bytes, is_file_this, is_dir_this, is_link_this, mod_time_this) = extract_name_size_and_type_from_ls_long_line(line) 
@@ -192,7 +191,7 @@ def is_experiment_folder_given_contents(file_names) :
 
 
 
-def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_path, root_absolute_path, to_process_folder_name, spinner) :
+def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_path, root_absolute_path, spinner) :
     # Find the experiment folders on a remote host.  Returns relative paths,
     # relative to root_absolute_path.
   
@@ -205,8 +204,8 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
         # if we can't list the dir, warn but continue
         spinner.print("Warning: can't list path %s on host %s as user %s" % (parent_absolute_path, host_name, user_name)) 
         spinner.print(str(e)) 
-        return (relative_path_from_experiment_index, is_aborted_from_experiment_index)
-    spinner.spin() ;
+        return ([], [])
+    spinner.spin()
 
     # Separate source file, folder names    
     is_entry_a_file = listmap(lambda b: not b, is_entry_a_folder)
@@ -215,12 +214,8 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
 
     # If the parent_path is an experiment folder, we're done
     if is_experiment_folder_given_contents(file_names) :
-        if parent_relative_path == to_process_folder_name :
-            spinner.print("Warning: found an experiment folder with relative path %s.  Can't synch because that's the path to the to-process folder" %
-                          parent_absolute_path) 
-        else :           
-            is_aborted_from_experiment_index = [ ('ABORTED' in file_names) ]
-            relative_path_from_experiment_index = [parent_relative_path] 
+        relative_path_from_experiment_index = [parent_relative_path]
+        is_aborted_from_experiment_index = [ ('ABORTED' in file_names) ]
     else :
         # For each folder, recurse
         relative_path_from_experiment_index = [] 
@@ -233,15 +228,14 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
                                                        host_name, 
                                                        os.path.join(parent_relative_path, folder_name), 
                                                        root_absolute_path,
-                                                       to_process_folder_name,
-                                                       spinner) 
+                                                       spinner)
             relative_path_from_experiment_index.extend(relative_path_from_child_experiment_index)
             is_aborted_from_experiment_index.extend(is_aborted_from_child_experiment_index)
     return (relative_path_from_experiment_index, is_aborted_from_experiment_index)
 
 
 
-def find_remote_experiment_folders(user_name, host_name, path, to_process_folder_name) :
+def find_remote_experiment_folders(user_name, host_name, path) :
     # record the start time
     start_time = time.time() 
 
@@ -252,8 +246,8 @@ def find_remote_experiment_folders(user_name, host_name, path, to_process_folder
     # All those zeros are the numbers of different kinds of things that have been verified so far
     spinner = spinner_object() 
     (relative_path_from_experiment_index, is_aborted_from_experiment_index) = \
-        find_remote_experiment_folders_helper(user_name, host_name, '', path, to_process_folder_name, spinner)
-    spinner.stop() ;
+        find_remote_experiment_folders_helper(user_name, host_name, '', path, spinner)
+    spinner.stop()
    
     # print the number of experiment folders found
     print("%d experiment folders found\n" % len(relative_path_from_experiment_index))
@@ -285,33 +279,27 @@ def delete_remote_folder(remote_user_name, remote_dns_name, remote_folder_path) 
 
 
 
-def aware_datetime_from_timestamp(timestamp) :
-    naive_datetime = datetime.datetime.fromtimestamp(timestamp)
-    return naive_datetime.astimezone()  # aware timezone, represented in local TZ
-
-
-
-def simple_dir(folder_name) :
-    name_from_index = os.listdir(folder_name)
-    path_from_index = list(map(lambda name: os.path.join(folder_name, name), 
-                               name_from_index))
-    is_folder_from_index = list(map(lambda path: os.path.isdir(path), 
-                                    path_from_index))
-    byte_count_from_index = list(map(lambda path: os.path.getsize(path),
-                                     path_from_index))
-    timestamp_from_index = list(map(lambda path: os.path.getmtime(path),
-                                    path_from_index))
-    datetime_from_index = list(map(aware_datetime_from_timestamp, timestamp_from_index))
-    return (name_from_index, is_folder_from_index, byte_count_from_index, datetime_from_index)
+# def simple_dir(folder_name) :
+#     name_from_index = os.listdir(folder_name)
+#     path_from_index = list(map(lambda name: os.path.join(folder_name, name),
+#                                name_from_index))
+#     is_folder_from_index = list(map(lambda path: os.path.isdir(path),
+#                                     path_from_index))
+#     byte_count_from_index = list(map(lambda path: os.path.getsize(path),
+#                                      path_from_index))
+#     timestamp_from_index = list(map(lambda path: os.path.getmtime(path),
+#                                     path_from_index))
+#     datetime_from_index = list(map(aware_datetime_from_timestamp, timestamp_from_index))
+#     return (name_from_index, is_folder_from_index, byte_count_from_index, datetime_from_index)
 
 
 
 def add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_experiment_folder_index) :
-    '''
+    """
     Makes a symbolic link from each folder in relative_path_from_experiment_folder_index into the to_process_folder_name.
     Both to_process_folder_name and each relative path in relative_path_from_experiment_folder_index are taken to be relative
     to destination_folder, which should be an absolute path.
-    '''
+    """
     to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
     os.makedirs(to_process_folder_path, exist_ok=True)  # Create the to_process folder if it doesn't exist
     experiment_folder_relative_path_count = len(relative_path_from_experiment_folder_index) 
@@ -349,8 +337,8 @@ def find_experiment_folders_relative_helper(root_path, parent_relative_path, spi
         for i in range(len(folder_names)) :
             folder_name = folder_names[i] 
             child_folder_path_list = \
-                 find_experiment_folders_relative_helper(root_path, \
-                                                         os.path.join(parent_relative_path, folder_name), \
+                 find_experiment_folders_relative_helper(root_path,
+                                                         os.path.join(parent_relative_path, folder_name),
                                                          spinner) 
             result.extend(child_folder_path_list)
     return result
@@ -595,7 +583,7 @@ def remote_sync_helper(source_user, \
                 spinner.print(str(e))
                 n_failed = n_failed + 1 
 
-    # scan source dirs, create any that that aren't in dest dirs
+    # scan source dirs, create any that aren't in dest dirs
     source_folder_names_not_in_dest = listsetdiff(source_folder_names, dest_folder_names) 
     for i in range(len(source_folder_names_not_in_dest)) :
         source_folder_name = source_folder_names_not_in_dest[i] 
@@ -604,7 +592,7 @@ def remote_sync_helper(source_user, \
             os.mkdir(dest_folder_path) 
         except Exception as e :
             # if we can't make the dir, warn but continue
-            spinner.print("Warning: can't make directory %s, error message was: " % (dest_folder_path, str(e))) 
+            spinner.print("Warning: can't make directory %s, error message was: %s" % (dest_folder_path, str(e)))
             n_dir_failed = n_dir_failed + 1 
     
     # need to re-generate dest dirs, because we may have failed to 
@@ -704,7 +692,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     # print an informative message
     #print('Searching for experiment folders in\n  %s@%s:%s...', source_user_name, source_host_name, source_root_absolute_path) 
     [relative_path_from_experiment_folder_index, is_aborted_from_experiment_folder_index] = \
-        find_remote_experiment_folders(source_user_name, source_host_name, source_root_absolute_path, to_process_folder_name) 
+        find_remote_experiment_folders(source_user_name, source_host_name, source_root_absolute_path)
     experiment_folder_count = len(relative_path_from_experiment_folder_index) 
     #print("%d experiment folders found.\n" , experiment_folder_count) 
     
@@ -961,12 +949,12 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
     else :
         # If not using Fuster, just run them normally (usually just for debugging)
         job_status_from_experiment_index = [ math.nan ] * experiment_count
-        for i in range(experiment_count) :
+        for experiment_index in range(experiment_count) :
             experiment_folder_path = folder_path_from_experiment_index[experiment_index]
             command_line_as_list = [analysis_executable_path, experiment_folder_path, user_name_for_configuration_purposes]
             rc = run_subprocess_live(command_line_as_list, check=False)
             job_status = +1 if (rc==0) else -1
-            job_status_from_experiment_index[i] = job_status
+            job_status_from_experiment_index[experiment_index] = job_status
 
     # Report on any failed runs
     was_successful_from_experiment_index = [job_status==+1 for job_status in job_status_from_experiment_index]
@@ -1059,6 +1047,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     # For each rig, copy the data over to the Janelia filesystem, and delete the
     # original data
     if do_transfer_data_from_rigs :
+        relative_path_from_synched_experiment_folder_index = []
         rig_count = len(host_name_from_rig_index) 
         for rig_index in range(rig_count) :
             rig_host_name = host_name_from_rig_index[rig_index] 
@@ -1066,19 +1055,21 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
             lab_data_folder_path = data_folder_path_from_rig_index[rig_index]
 
             try :
-                relative_path_from_synched_experiment_folder_index = \
-                    remote_sync_verify_and_delete_experiment_folders(rig_user_name, \
-                                                                     rig_host_name, \
-                                                                     lab_data_folder_path, \
-                                                                     destination_folder, \
+                relative_path_from_rig_synched_experiment_folder_index = \
+                    remote_sync_verify_and_delete_experiment_folders(rig_user_name,
+                                                                     rig_host_name,
+                                                                     lab_data_folder_path,
+                                                                     destination_folder,
                                                                      to_process_folder_name)                 
                 add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_synched_experiment_folder_index) 
             except Exception as e :
+                relative_path_from_rig_synched_experiment_folder_index = []
                 print('There was a problem doing the sync from %s:%s as %s to %s:' % \
                       (rig_host_name, lab_data_folder_path, rig_user_name, destination_folder) )
                 print(repr(e))     
                 tb = e.__traceback__
                 traceback.print_tb(tb, file=sys.stdout)
+            relative_path_from_synched_experiment_folder_index.extend(relative_path_from_rig_synched_experiment_folder_index)
     else :
         print('Skipping transfer of data from rigs.') 
         relative_path_from_synched_experiment_folder_index = []
@@ -1126,13 +1117,13 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
 
 
 def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None):
-    '''
+    """
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
        computers and then runs an analysis script on them.  What rig computers to
        search, and a variety of other settings, are determined from the username of
-       the user running transfero().    
-    '''
+       the user running transfero().
+    """
 
     # # For debugging
     # print('do_transfer_data_from_rigs_argument: %s' % str(do_transfer_data_from_rigs_argument))
@@ -1141,7 +1132,7 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
     # Load the per-lab configuration file
     transfero_script_path = os.path.realpath(__file__)
     transfero_root_folder_path = os.path.dirname(transfero_script_path)
-    if configuration_or_configuration_file_name == None:
+    if configuration_or_configuration_file_name is None:
         user_name = get_user_name()
         configuration_file_name = '%s_configuration.yaml' % user_name
         configuration_file_path = os.path.join(transfero_root_folder_path, configuration_file_name)
