@@ -13,6 +13,14 @@
             "justMyCode": true
         } ,
         {
+            "name": "test_transfero_on_rubin_rig_flybubble_ww2.py",
+            "type": "python",
+            "request": "launch",
+            "program": "test_transfero_on_rubin_rig_flybubble_ww2.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        } ,
+        {
             "name": "test_transfero_on_branson_rig.py",
             "type": "python",
             "request": "launch",
