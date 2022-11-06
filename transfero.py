@@ -1061,7 +1061,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                                                                      lab_data_folder_path,
                                                                      destination_folder,
                                                                      to_process_folder_name)                 
-                add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_synched_experiment_folder_index) 
+                add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_rig_synched_experiment_folder_index) 
             except Exception as e :
                 relative_path_from_rig_synched_experiment_folder_index = []
                 print('There was a problem doing the sync from %s:%s as %s to %s:' % \
