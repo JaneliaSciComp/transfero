@@ -5,13 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "test_transfero_on_rubin_rig_flybubble_ww1.py",
             "type": "python",
             "request": "launch",
             "program": "test_transfero_on_rubin_rig_flybubble_ww1.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "test_transfero_on_rubin_rig_flybubble_ww2.py",
             "type": "python",
@@ -19,7 +27,7 @@
             "program": "test_transfero_on_rubin_rig_flybubble_ww2.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "test_transfero_on_branson_rig.py",
             "type": "python",
@@ -27,7 +35,7 @@
             "program": "test_transfero_on_branson_rig.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "test_transfero_on_aso_rig.py",
             "type": "python",
@@ -35,7 +43,7 @@
             "program": "test_transfero_on_aso_rig.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "turn_on_transfero.py",
             "type": "python",
@@ -43,7 +51,7 @@
             "program": "turn_on_transfero.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "turn_off_transfero.py",
             "type": "python",
@@ -51,7 +59,7 @@
             "program": "turn_off_transfero.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        } ,
+        },
         {
             "name": "fuster.py",
             "type": "python",
