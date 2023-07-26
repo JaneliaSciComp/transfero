@@ -68,7 +68,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
         experiment_count = len(folder_path_from_experiment_index)
         for i in range(experiment_count) : 
             experiment_folder_path = folder_path_from_experiment_index[i] 
-            command_line = {'ln', '-s', experiment_folder_path, to_process_folder_path} 
+            command_line = ['ln', '-s', experiment_folder_path, to_process_folder_path]
             run_subprocess_live(command_line) 
         print('Done transfering data to the destination path.') 
  
@@ -162,4 +162,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(True, True)
+    test_transfero(False, True)

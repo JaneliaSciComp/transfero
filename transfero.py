@@ -937,8 +937,8 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
             command_line_as_list = [analysis_executable_path, experiment_folder_path, user_name_for_configuration_purposes]
             stdouterr_file_path = os.path.join(experiment_folder_path, log_file_name)
             bsub_job_name = '%s-transfero-%d' % (cluster_billing_account_name, experiment_index)
-            bsub_options_as_list = [ '-P', cluster_billing_account_name, '-J', bsub_job_name, '-o', log_file_name, '-e', log_file_name ]
-              # Add log_file_name to the options here to override -oo, -eo behavior we would normally get
+            bsub_options_as_list = [ '-P', cluster_billing_account_name, '-J', bsub_job_name, '-o', stdouterr_file_path, '-e', stdouterr_file_path ]
+              # Add stdouterr_file_path to the options here to override -oo, -eo behavior we would normally get
             bqueue.enqueue(slots_per_job, stdouterr_file_path, bsub_options_as_list, command_line_as_list)
         maximum_wait_time = math.inf
         do_show_progress_bar = True 
