@@ -10,6 +10,6 @@ analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrappe
 slots_per_analysis_job: 4
 maximum_analysis_slot_count: 400
 do_transfer_data_from_rigs: True
-do_run_analysis: True
+do_run_analysis: False
 launch_hour: 22
 launch_minute: 0
