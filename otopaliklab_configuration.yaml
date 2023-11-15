@@ -1,0 +1,15 @@
+cluster_billing_account_name: 'otopalik'
+host_name_from_rig_index: [ 'rubinlab-ww11.hhmi.org', 'rubinlab-ww12.hhmi.org' ]
+rig_user_name_from_rig_index: [ 'labadmin', 'labadmin' ]
+data_folder_path_from_rig_index: [ '/cygdrive/e/Data', '/cygdrive/e/Data' ]
+destination_folder: '/groups/otopalik/otopaliklab/flydisco_data'
+log_file_name: 'flydisco-analysis-log.txt'
+user_name_for_configuration_purposes: 'otopalikrobot'
+analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
+  # this is interpreted relative to folder containing transfero.py
+slots_per_analysis_job: 4
+maximum_analysis_slot_count: 400
+do_transfer_data_from_rigs: True
+do_run_analysis: False
+launch_hour: 22
+launch_minute: 0
