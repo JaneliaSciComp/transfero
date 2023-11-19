@@ -162,4 +162,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(False, True)
+    test_transfero(True, True)

@@ -93,7 +93,7 @@ def compute_md5_on_local(local_path) :
     stdout = run_subprocess_and_return_stdout(command_line)
     tokens = stdout.strip().split()
     if isempty(tokens) :
-        raise RuntimeError('Got a weird result while md5sum''ing the file %s.  Stdout/stderr was:\n%s' % (local_path, stdout))
+        raise RuntimeError('Got a weird result while md5sum''ing the file %s.  Stdout was:\n%s' % (local_path, stdout))
     hex_digest = tokens[0] 
     return hex_digest
 
@@ -104,16 +104,16 @@ def copy_file_from_remote(source_user, source_host, source_path, dest_path) :
     #escaped_dest_path = shlex.quote(dest_path) 
     source_spec = source_user + '@' + source_host + ':' + source_path
     start_time = time.time()
-    command_line = [ '/usr/bin/scp', '-B', '-T', source_spec, dest_path ]
-    [scp_return_code, scp_stdout] = run_subprocess_and_return_code_and_stdout(command_line) 
+    scp_command_line = [ '/usr/bin/scp', '-B', '-T', source_spec, dest_path ]
+    [scp_return_code, scp_stdout] = run_subprocess_and_return_code_and_stdout(scp_command_line) 
     # scp doesn't honor the user's umask, so we need to set the file
     # permissions explicitly
     if scp_return_code != 0:
         raise CopyFileFromRemoteFailedError(
             'Unable to copy the file %s as remote user %s from host %s to destination %s:\n%s' %
             (source_path, source_user, source_host, dest_path, scp_stdout))
-    command_line = [ '/bin/chmod', 'u+rw-x,g+rw-x,o+r-wx', dest_path ]
-    [chmod_return_code, chmod_stdout] = run_subprocess_and_return_code_and_stdout(command_line)
+    chmod_command_line = [ '/bin/chmod', 'u+rw-x,g+rw-x,o+r-wx', dest_path ]
+    [chmod_return_code, chmod_stdout] = run_subprocess_and_return_code_and_stdout(chmod_command_line)
     if chmod_return_code != 0 :
         raise CopyFileFromRemoteFailedError('Unable to set the permissions of %s after copy:\n%s' %
                                             (dest_path, chmod_stdout) ) 
@@ -250,11 +250,11 @@ def find_remote_experiment_folders(user_name, host_name, path) :
     spinner.stop()
    
     # print the number of experiment folders found
-    print("%d experiment folders found\n" % len(relative_path_from_experiment_index))
+    print("%d experiment folders found" % len(relative_path_from_experiment_index))
 
     # print the elapsed time
     elapsed_time = time.time() - start_time
-    print("Elapsed time: %0.1f seconds\n" % elapsed_time) 
+    print("Elapsed time: %0.1f seconds" % elapsed_time) 
 
     # Return the result
     return (relative_path_from_experiment_index, is_aborted_from_experiment_index)
@@ -359,11 +359,11 @@ def find_experiment_folders_relative(source_path) :
     spinner.stop() 
    
     # print the number of files etc verified
-    print("%d experiment folders found\n" % len(experiment_folder_path_list))
+    print("%d experiment folders found" % len(experiment_folder_path_list))
 
     # print the elapsed time
     elapsed_time = time.time() - start_time
-    print("Elapsed time: %0.1f seconds\n" % elapsed_time) 
+    print("Elapsed time: %0.1f seconds" % elapsed_time) 
 
     return experiment_folder_path_list
 
@@ -496,12 +496,12 @@ def remote_verify(source_user, source_host, source_path, dest_path, be_verbose=F
     #fprintf("%d folders verified\n", n_dirs_verified) 
     #fprintf("%d file bytes verified\n", n_file_bytes_verified) 
     if be_verbose :
-        print("Success: All files and folders in source are present in destination.\n")
+        print("Success: All files and folders in source are present in destination.")
 
     # print the elapsed time
     elapsed_time = time.time() - start_time
     if be_verbose :
-        print("Elapsed time: %0.1f seconds\n" % elapsed_time) 
+        print("Elapsed time: %0.1f seconds" % elapsed_time) 
 
 
 
@@ -574,7 +574,7 @@ def remote_sync_helper(source_user, \
             n_verified = n_verified + 1 
         else :
             try :
-                time_spent_copying = time_spent_copying + copy_file_from_remote(source_user,source_host, source_file_path, dest_file_path) 
+                time_spent_copying = time_spent_copying + copy_file_from_remote(source_user, source_host, source_file_path, dest_file_path) 
                 n_copied = n_copied + 1 
             except CopyFileFromRemoteFailedError as e :
                 # orginally except IOError
@@ -655,8 +655,8 @@ def remote_sync(source_user, source_host, source_path, dest_path, be_verbose=Fal
         # print the elapsed time
         elapsed_time = time.time() - start_time
         if be_verbose :
-            print("Elapsed time: %0.1f seconds\n" % elapsed_time) 
-            print("Time spent copying: %0.1f seconds\n" % time_spent_copying) 
+            print("Elapsed time: %0.1f seconds" % elapsed_time) 
+            print("Time spent copying: %0.1f seconds" % time_spent_copying) 
     else :
         # throw an error if there were any failures
         raise RuntimeError('There was at least one failure during the remote sync: %d file copies failed, %d directory creates failed, %d directories failed to list' %
@@ -682,7 +682,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     # Make sure the remote folder exists, return if not
     does_folder_exist = does_remote_file_exist(source_user_name, source_host_name, source_root_absolute_path) 
     if not does_folder_exist :
-        print('Folder %s does not exist on host %s, so not searching for experiment folders in it.\n', source_root_absolute_path, source_host_name) 
+        print('Folder %s does not exist on host %s, so not searching for experiment folders in it.' % (source_root_absolute_path, source_host_name)) 
         relative_path_from_synched_experiment_index = []
         return relative_path_from_synched_experiment_index
     
@@ -728,9 +728,9 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     deleted_aborted_experiment_folder_count = sum(did_delete_from_aborted_experiment_folder_index)
     delete_error_count = aborted_experiment_folder_count - deleted_aborted_experiment_folder_count 
     if aborted_experiment_folder_count > 0 :
-        print("Of %d ABORTED experiment folders:\n" % aborted_experiment_folder_count) 
-        print("  %d deleted\n" % deleted_aborted_experiment_folder_count) 
-        print("  %d failed to delete\n" % delete_error_count) 
+        print("Of %d ABORTED experiment folders:" % aborted_experiment_folder_count) 
+        print("  %d deleted" % deleted_aborted_experiment_folder_count) 
+        print("  %d failed to delete" % delete_error_count) 
     
     # print an informative message
     unaborted_experiment_folder_count = len(relative_path_from_unaborted_experiment_folder_index) 
@@ -760,9 +760,9 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     synched_experiment_folder_count = sum(did_synch_from_unaborted_experiment_folder_index) 
     synch_error_count = unaborted_experiment_folder_count - synched_experiment_folder_count 
     if unaborted_experiment_folder_count > 0 :
-        print("Of %d unaborted experiment folders:\n" % unaborted_experiment_folder_count) 
-        print("  %d synched and verified\n" % synched_experiment_folder_count) 
-        print("  %d failed to synch or verify\n" % synch_error_count) 
+        print("Of %d unaborted experiment folders:" % unaborted_experiment_folder_count) 
+        print("  %d synched and verified" % synched_experiment_folder_count) 
+        print("  %d failed to synch or verify" % synch_error_count) 
     
     # Delete each synched experiment folder in turn
     relative_path_from_synched_experiment_index = ibb(relative_path_from_unaborted_experiment_folder_index, did_synch_from_unaborted_experiment_folder_index)
@@ -785,13 +785,13 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     deleted_experiment_folder_count = sum(did_delete_from_synched_experiment_index) 
     delete_error_count = synched_experiment_folder_count - deleted_experiment_folder_count 
     if synched_experiment_folder_count > 0 :
-        print("Of %d synched experiment folders:\n" % synched_experiment_folder_count) 
-        print("  %d deleted\n" % deleted_experiment_folder_count) 
-        print("  %d failed to delete\n" % delete_error_count) 
+        print("Of %d synched experiment folders:" % synched_experiment_folder_count) 
+        print("  %d deleted" % deleted_experiment_folder_count) 
+        print("  %d failed to delete" % delete_error_count) 
 
     # print the elapsed time
     elapsed_time = time.time() - start_time
-    print("Total elapsed time: %0.1f seconds\n" % elapsed_time) 
+    print("Total elapsed time: %0.1f seconds" % elapsed_time) 
     
 #     # throw an error if there were any failures
 #     if synch_error_count > 0 || delete_error_count > 0 ,
@@ -903,14 +903,14 @@ def local_verify(source_path, dest_path) :
     spinner.stop()     
     
     # print the number of files etc verified
-    print("%d files verified\n" % n_files_verified) 
-    print("%d folders verified\n" % n_dirs_verified) 
-    print("%d file bytes verified\n" % n_file_bytes_verified) 
-    print("Success: All files and folders in source are present in destination.\n")
+    print("%d files verified" % n_files_verified) 
+    print("%d folders verified" % n_dirs_verified) 
+    print("%d file bytes verified" % n_file_bytes_verified) 
+    print("Success: All files and folders in source are present in destination.")
 
     # print the elapsed time
     elapsed_time = time.time() - start_time
-    print("Elapsed time: %0.1f seconds\n" % elapsed_time) 
+    print("Elapsed time: %0.1f seconds" % elapsed_time) 
 
 
 
@@ -1032,13 +1032,13 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     # Add a "banner" to the start of the log
     tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
     start_time_as_char = datetime.datetime.now(tz=tz).strftime('%Y-%m-%d %H:%M %Z')    
-    print('\n') 
-    print('********************************************************************************\n') 
-    print('\n') 
-    print('Transfero run starting at %s\n' % start_time_as_char) 
-    print('\n') 
-    print('********************************************************************************\n') 
-    print('\n')     
+    printf('\n') 
+    printf('********************************************************************************\n') 
+    printf('\n') 
+    printf('Transfero run starting at %s\n' % start_time_as_char) 
+    printf('\n') 
+    printf('********************************************************************************\n') 
+    printf('\n')     
 
     # Get info about the state of the repo, output to log
     print('Transfero repository state:')
@@ -1103,13 +1103,13 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
         job_status_from_experiment_index =[]
     
     # Want the start and end of a single transfero run to be clear in the log
-    print('\n') 
-    print('********************************************************************************\n') 
-    print('\n') 
-    print('Transfero run started at %s is ending\n' % start_time_as_char) 
-    print('\n') 
-    print('********************************************************************************\n') 
-    print('\n')    
+    printf('\n') 
+    printf('********************************************************************************\n') 
+    printf('\n') 
+    printf('Transfero run started at %s is ending\n' % start_time_as_char) 
+    printf('\n') 
+    printf('********************************************************************************\n') 
+    printf('\n')    
 
     # Return some stuff
     return (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index)
