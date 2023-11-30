@@ -8,6 +8,7 @@ import subprocess
 import shlex
 import traceback
 import math
+import re
 from tpt.utilities import *
 from tpt.fuster import *
 
@@ -42,18 +43,21 @@ def run_remote_subprocess_and_return_stdout(user_name, host_name, remote_command
 
 
 
-def does_remote_file_exist(user_name, host_name, path) :
-    escaped_source_path = shlex.quote(path) 
-    remote_stat_command_line = 'test -a ' + escaped_source_path 
+def can_ssh_into_remote_host(user_name, host_name) :
+    remote_stat_command_line = 'true'
     command_line_as_list = ['/usr/bin/ssh', user_name+'@'+host_name, remote_stat_command_line]
     [return_code, stdout] = run_subprocess_and_return_code_and_stdout(command_line_as_list)
-    if return_code == 0 :
-        does_exist = True 
-    elif return_code == 1 :
-        does_exist = False 
-    else :
-        raise RuntimeError('Ambiguous result from "%s": Not clear if file/folder %s exists or not on host %s.  Return code is %d.  stdout is:\n%s' %
-                           (str(command_line_as_list), path, host_name, return_code, stdout) )
+    can_ssh = ( return_code == 0 )
+    return can_ssh
+
+
+
+def does_remote_file_exist(user_name, host_name, path) :
+    escaped_source_path = shlex.quote(path) 
+    remote_stat_command_line = 'test -e ' + escaped_source_path 
+    command_line_as_list = ['/usr/bin/ssh', user_name+'@'+host_name, remote_stat_command_line]
+    [return_code, stdout] = run_subprocess_and_return_code_and_stdout(command_line_as_list)
+    does_exist = (return_code == 0)
     return does_exist
 
 
@@ -177,16 +181,34 @@ def list_remote_dir(source_user, source_host, source_path) :
 
 
 
+def is_movie_file_given_file_name(file_name):
+    lowered_name = file_name.lower()
+    return bool(re.match('^movie(.*)\.ufmf$', lowered_name)) or bool(re.match('^movie(.*)\.avi$', lowered_name))
+
+
+
+def is_metadata_file_given_file_name(file_name):
+    lowered_name = file_name.lower()
+    return (lowered_name == 'metadata.xml')
+
+
+
+def is_aborted_file_given_file_name(file_name):
+    return bool(re.match('^ABORTED(.*)$', file_name))
+
+
+
+def is_experimenty_given_file_name(file_name):
+    return is_movie_file_given_file_name(file_name) or is_metadata_file_given_file_name(file_name) or is_aborted_file_given_file_name(file_name)
+
+
+
 def is_experiment_folder_given_contents(file_names) :
-    lowercase_file_names = list(map(lambda s: s.lower(), file_names))
-    # We check for three files.  If two or more are present, we consider it an
-    # experiment folder
-    has_movie_file = ( ('movie.ufmf' in lowercase_file_names) or ('movie.avi' in lowercase_file_names) or ('movie_movie.ufmf' in lowercase_file_names) )
-    point_count = \
-        has_movie_file + \
-        ('metadata.xml' in lowercase_file_names) + \
-        ('ABORTED' in file_names) 
-    result = ( point_count >= 2) 
+    # We check for three kinds of files: movie, metadata, aborted.  If two or more are present, we consider it an
+    # experiment folder.
+    is_experimenty_from_file_name_index = [ is_experimenty_given_file_name(file_name) for file_name in file_names ]
+    point_count = sum(is_experimenty_from_file_name_index)
+    result = ( point_count >= 2 )
     return result
 
 
@@ -676,13 +698,19 @@ def remote_sync_and_verify(source_user, source_host, source_path, dest_path) :
 def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                                                      source_host_name, \
                                                      source_root_absolute_path, \
-                                                     dest_root_absolute_path, \
-                                                     to_process_folder_name) :
+                                                     dest_root_absolute_path) :
 
+    # Make sure we can connect to the remote host and run a simple test command
+    can_ssh = can_ssh_into_remote_host(source_user_name, source_host_name)
+    if not can_ssh :
+        print('Unable to ssh into host %s as user %s and run a simple test command, so not searching for experiment folders on it.' % (source_host_name, source_user_name)) 
+        relative_path_from_synched_experiment_index = []
+        return relative_path_from_synched_experiment_index
+    
     # Make sure the remote folder exists, return if not
     does_folder_exist = does_remote_file_exist(source_user_name, source_host_name, source_root_absolute_path) 
     if not does_folder_exist :
-        print('Folder %s does not exist on host %s, so not searching for experiment folders in it.' % (source_root_absolute_path, source_host_name)) 
+        print('Folder %s does not seem to exist on host %s, so not searching for experiment folders in it.' % (source_root_absolute_path, source_host_name)) 
         relative_path_from_synched_experiment_index = []
         return relative_path_from_synched_experiment_index
     
@@ -711,7 +739,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
         print('Deleting %d ABORTED experiment folders from\n  %s@%s:%s\n  ...\n' % 
               (aborted_experiment_folder_count, source_user_name, source_host_name, source_root_absolute_path)) 
     
-    # Delete each experiment folder in turn
+    # Delete each aborted experiment folder in turn
     did_delete_from_aborted_experiment_folder_index = [False] * experiment_folder_count
     for i in range(aborted_experiment_folder_count) :
         experiment_folder_relative_path = relative_path_from_aborted_experiment_folder_index[i] 
@@ -724,7 +752,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
                   (source_folder_absolute_path, 
                    str(e)))     
 
-    # print the number of ABORTED experiment folders deleted
+    # Print the number of aborted experiment folders deleted
     deleted_aborted_experiment_folder_count = sum(did_delete_from_aborted_experiment_folder_index)
     delete_error_count = aborted_experiment_folder_count - deleted_aborted_experiment_folder_count 
     if aborted_experiment_folder_count > 0 :
@@ -732,7 +760,7 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
         print("  %d deleted" % deleted_aborted_experiment_folder_count) 
         print("  %d failed to delete" % delete_error_count) 
     
-    # print an informative message
+    # Print an informative message
     unaborted_experiment_folder_count = len(relative_path_from_unaborted_experiment_folder_index) 
     if unaborted_experiment_folder_count > 0 :
         print('Synching %d experiment folders from\n  %s@%s:%s\n  into\n  %s\n  ...\n' %
@@ -793,14 +821,8 @@ def remote_sync_verify_and_delete_experiment_folders(source_user_name, \
     elapsed_time = time.time() - start_time
     print("Total elapsed time: %0.1f seconds" % elapsed_time) 
     
-#     # throw an error if there were any failures
-#     if synch_error_count > 0 || delete_error_count > 0 ,
-#         error("There was at least one failure during the synching of unaborted experiment folders from the remote host") 
-#     end
-    
     # Return the synched experiments, whether or not they were deleted
     return relative_path_from_synched_experiment_index
-# end remote_sync_verify_and_delete_experiment_folders
 
 
 
@@ -1060,8 +1082,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                     remote_sync_verify_and_delete_experiment_folders(rig_user_name,
                                                                      rig_host_name,
                                                                      lab_data_folder_path,
-                                                                     destination_folder,
-                                                                     to_process_folder_name)                 
+                                                                     destination_folder)                 
                 add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_rig_synched_experiment_folder_index) 
             except Exception as e :
                 relative_path_from_rig_synched_experiment_folder_index = []

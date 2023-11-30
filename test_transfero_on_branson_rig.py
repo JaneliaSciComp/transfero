@@ -83,7 +83,10 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     local_verify(read_only_example_experiments_folder_path, transfero_destination_folder_path) 
 
     # Check the return values from transfero()
-    if len(relative_path_from_synched_experiment_folder_index)==1 and len(job_status_from_experiment_index)==1 and all(job_status==+1 for job_status in job_status_from_experiment_index) :
+    if ( len(relative_path_from_synched_experiment_folder_index)==1 and 
+         ( not do_run_analysis or 
+           ( len(job_status_from_experiment_index)==1 and 
+             all(job_status==+1 for job_status in job_status_from_experiment_index) ) ) ):
         # all is well
         pass
     else :
@@ -162,4 +165,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(True, True)
+    test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=False)
