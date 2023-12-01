@@ -236,8 +236,9 @@ def find_remote_experiment_folders_helper(user_name, host_name, parent_relative_
 
     # If the parent_path is an experiment folder, we're done
     if is_experiment_folder_given_contents(file_names) :
-        relative_path_from_experiment_index = [parent_relative_path]
-        is_aborted_from_experiment_index = [ ('ABORTED' in file_names) ]
+        relative_path_from_experiment_index = [ parent_relative_path ]
+        is_aborted = any([ is_aborted_file_given_file_name(file_name) for file_name in file_names ])
+        is_aborted_from_experiment_index = [ is_aborted ]
     else :
         # For each folder, recurse
         relative_path_from_experiment_index = [] 
