@@ -34,6 +34,7 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
     per_lab_configuration['log_file_name'] = 'flydisco-analysis-log.txt'
     per_lab_configuration['user_name_for_configuration_purposes'] = 'bransonlab'
     per_lab_configuration['analysis_executable_path'] = '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'
+    per_lab_configuration['do_retry_failed_analysis'] = True
     per_lab_configuration['slots_per_analysis_job'] = 4
     per_lab_configuration['maximum_analysis_slot_count'] = 400
 
@@ -165,4 +166,4 @@ def test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True) :
 
 
 if __name__ == "__main__":
-    test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=False)
+    test_transfero(do_transfer_data_from_rigs=True, do_run_analysis=True)

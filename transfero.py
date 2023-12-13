@@ -1047,6 +1047,10 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
     log_file_name = configuration['log_file_name']
+    if 'do_retry_failed_analysis' in configuration:
+        do_retry_failed_analysis = configuration['do_retry_failed_analysis']
+    else:
+        do_retry_failed_analysis = False
 
     # # For debugging
     # print('do_transfer_data_from_rigs: %s' % str(do_transfer_data_from_rigs))
@@ -1111,9 +1115,28 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
             transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_experiment_index, cluster_billing_account_name, slots_per_analysis_job, 
                                                  maximum_analysis_slot_count, log_file_name, user_name_for_configuration_purposes)
         
+        # Retry failed experiments, if called for in configuration
+        final_job_status_from_experiment_index = job_status_from_experiment_index.copy()
+        if do_retry_failed_analysis:
+            # Submit again for any failed jobs, because sometimes jobs fail for no good reason
+            experiment_folder_count = len(link_path_from_experiment_index)
+            did_fail_from_experiment_index = [ status==-1 for status in job_status_from_experiment_index ]
+            folder_path_from_failed_experiment_index = [ folder_path_from_experiment_index[i] for i in range(experiment_folder_count) if did_fail_from_experiment_index[i] ]
+            job_status_from_failed_experiment_index = \
+                transfero_analyze_experiment_folders(analysis_executable_path, folder_path_from_failed_experiment_index, cluster_billing_account_name, slots_per_analysis_job, 
+                                                    maximum_analysis_slot_count, log_file_name, user_name_for_configuration_purposes)
+
+            # Merge the two job status arrays
+            failed_experiment_index = -1
+            for experiment_index in range(experiment_folder_count) :
+                # If it failed, the final job status is the status from the second pass.
+                # Otherwise leave it alone.
+                if did_fail_from_experiment_index[experiment_index]:
+                    failed_experiment_index = failed_experiment_index + 1               
+                    final_job_status_from_experiment_index[experiment_index] = job_status_from_failed_experiment_index[failed_experiment_index]
+
         # Whether those succeeded or failed, remove the links from the
         # to-process folder
-        experiment_folder_count = len(link_path_from_experiment_index)
         for i in range(experiment_folder_count) :
             experiment_folder_link_path = link_path_from_experiment_index[i]  
             # experiment_folder_link_path is almost certainly a symlink, but check
@@ -1134,7 +1157,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
     printf('\n')    
 
     # Return some stuff
-    return (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index)
+    return (relative_path_from_synched_experiment_folder_index, final_job_status_from_experiment_index)
 # end of transfero_core()
 
 
