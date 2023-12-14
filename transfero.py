@@ -1145,7 +1145,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                 os.remove(experiment_folder_link_path) 
     else :
         print('Skipping analysis.') 
-        job_status_from_experiment_index =[]
+        final_job_status_from_experiment_index =[]
     
     # Want the start and end of a single transfero run to be clear in the log
     printf('\n') 
