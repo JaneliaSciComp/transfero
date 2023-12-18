@@ -1088,7 +1088,8 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
                                                                      rig_host_name,
                                                                      lab_data_folder_path,
                                                                      destination_folder)                 
-                add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_rig_synched_experiment_folder_index) 
+                if do_run_analysis:
+                    add_links_to_to_process_folder(destination_folder, to_process_folder_name, relative_path_from_rig_synched_experiment_folder_index) 
             except Exception as e :
                 relative_path_from_rig_synched_experiment_folder_index = []
                 print('There was a problem doing the sync from %s:%s as %s to %s:' % \
@@ -1117,9 +1118,9 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
         
         # Retry failed experiments, if called for in configuration
         final_job_status_from_experiment_index = job_status_from_experiment_index.copy()
+        experiment_folder_count = len(link_path_from_experiment_index)
         if do_retry_failed_analysis:
             # Submit again for any failed jobs, because sometimes jobs fail for no good reason
-            experiment_folder_count = len(link_path_from_experiment_index)
             did_fail_from_experiment_index = [ status==-1 for status in job_status_from_experiment_index ]
             folder_path_from_failed_experiment_index = [ folder_path_from_experiment_index[i] for i in range(experiment_folder_count) if did_fail_from_experiment_index[i] ]
             job_status_from_failed_experiment_index = \
