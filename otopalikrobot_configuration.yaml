@@ -1,6 +1,6 @@
 cluster_billing_account_name: 'otopalik'
-host_name_from_rig_index: [ 'rubinlab-ww11.hhmi.org', 'rubinlab-ww12.hhmi.org' ]
-rig_user_name_from_rig_index: [ 'RUBINLAB-WW11+labadmin', 'RUBINLAB-WW12+labadmin' ]
+host_name_from_rig_index: [ 'rubinlab-ww11.hhmi.org', 'rubinlab-ww16.hhmi.org' ]
+rig_user_name_from_rig_index: [ 'RUBINLAB-WW11+labadmin', 'RUBINLAB-WW16+labadmin' ]
 data_folder_path_from_rig_index: [ '/cygdrive/d/Data', '/cygdrive/d/Data' ]
 destination_folder: '/groups/otopalik/otopaliklab/flydisco_data'
 log_file_name: 'flydisco-analysis-log.txt'
