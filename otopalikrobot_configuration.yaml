@@ -1,5 +1,5 @@
 cluster_billing_account_name: 'otopalik'
-host_name_from_rig_index: [ '10.103.32.21', '10.103.32.26', '10.103.32.24' ]
+host_name_from_rig_index: [ '10.103.32.21', '10.103.32.26', '10.103.30.36' ]
 rig_user_name_from_rig_index: [ 'RUBINLAB-WW11+labadmin', 'RUBINLAB-WW16+labadmin', 'labadmin' ]
 data_folder_path_from_rig_index: [ '/cygdrive/d/Data', '/cygdrive/d/Data', '/cygdrive/d/Data' ]
 destination_folder: '/groups/otopalik/otopaliklab/flydisco_data'
