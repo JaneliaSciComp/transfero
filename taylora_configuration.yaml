@@ -1,8 +1,8 @@
 cluster_billing_account_name: 'scicompsoft'
-host_name_from_rig_index: [ 'taylora-ws1.int.janelia.org' ]
+host_name_from_rig_index: [ 'taylora-ws4.hhmi.org' ]
 rig_user_name_from_rig_index: [ 'taylora' ]
-data_folder_path_from_rig_index: [ '/groups/scicompsoft/home/taylora/yoshi/transfero/test-source-folder' ]
-destination_folder: '/groups/scicompsoft/home/taylora/yoshi/transfero/test-destination-folder'
+data_folder_path_from_rig_index: [ '/groups/branson/bransonlab/taylora/transfero/test-source-folder' ]
+destination_folder: '/groups/branson/bransonlab/taylora/transfero/test-destination-folder'
 log_file_name: 'flydisco-analysis-log.txt'
 user_name_for_configuration_purposes: 'taylora'
 analysis_executable_path: '/bin/echo'

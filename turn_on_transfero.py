@@ -27,23 +27,13 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     # Load the configuration, based on the user name
     this_script_path = os.path.realpath(__file__)
     transfero_folder_path = os.path.dirname(this_script_path)
-    transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
     user_name = get_user_name()
     configuration_file_name = '%s_configuration.yaml' % user_name
     configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
     configuration = read_yaml_file_badly(configuration_file_path)
-    cluster_billing_account_name = configuration['cluster_billing_account_name']
     
-    destination_folder_path = configuration['destination_folder']
-    #escaped_destination_folder_path = shlex.quote(destination_folder_path)    
-    transfero_logs_folder_path = os.path.join(destination_folder_path, 'transfero-logs') 
-    escaped_transfero_logs_folder_path = shlex.quote(transfero_logs_folder_path) 
-    
-    home_folder_path = os.getenv('HOME') 
-    bash_profile_path = os.path.join(home_folder_path, '.bash_profile') 
-    escaped_bash_profile_path = shlex.quote(bash_profile_path) 
-    
-    launcher_script_path = os.path.join(transfero_folder_path, 'transfero_launcher.sh') 
+    # Get the path to the executable we want crontab to run
+    launcher_script_path = os.path.join(transfero_folder_path, 'transfero_via_bsub.py') 
     escaped_launcher_script_path = shlex.quote(launcher_script_path) 
     
     if hr_argument is None :
@@ -55,33 +45,8 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     else :
         min = min_argument    
 
-#     escaped_bash_profile_path=${1}
-#     escaped_fly_disco_analysis_folder_path=${2}
-#     pi_last_name=${3}
-#     escaped_transfero_logs_folder_path=${4}
-#     date_as_string=`date +%Y-%m-%d`
-#     transfero_log_file_name="transfero-${date_as_string}.log"
-#     transfero_log_file_path="${escaped_transfero_logs_folder_path}/${transfero_log_file_name}" 
+    core_command_line = escaped_launcher_script_path
 
-    core_command_line = \
-        '%s %s %s %s %s' % (escaped_launcher_script_path, 
-                            escaped_bash_profile_path,
-                            transfero_script_path, 
-                            cluster_billing_account_name, 
-                            escaped_transfero_logs_folder_path) 
-
-#     core_command_line = \
-#         sprintf(['. /misc/lsf/conf/profile.lsf  ' \
-#                  '. #s  ' \
-#                  'cd #s  ' \
-#                  'bsub -n1 -P #s -o #s -e #s /misc/local/matlab-2019a/bin/matlab -nodisplay -batch ''modpath transfero(true, true)'''], \
-#                 escaped_bash_profile_path, \
-#                 escaped_fly_disco_analysis_folder_path, \
-#                 pi_last_name, \
-#                 escaped_transfero_log_folder_path, \
-#                 escaped_transfero_log_folder_path)  %#ok<NOPRT>
-    #escaped_core_command_line = shlex.quote(core_command_line) 
-    
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 
         
