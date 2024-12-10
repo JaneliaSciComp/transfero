@@ -27,10 +27,6 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
     # Get things we need out of configuration
     cluster_billing_account_name = configuration['cluster_billing_account_name']    
     destination_folder_path = configuration['destination_folder']
-    if do_transfer is None:
-        do_transfer = configuration['do_transfer_data_from_rigs']
-    if do_analyze is None:
-        do_analyze = configuration['do_run_analysis']
 
     # If not specified, log
     if do_log is None:
@@ -59,7 +55,7 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
 
     # Synthesize the Transfero arguments
     transfero_command_line_args = ([] if (do_transfer is None) else (["--transfer"] if do_transfer else ["--no-transfer"])) + \
-                                  ([] if (do_analyze  is None) else (["--analyze" ] if do_transfer else ["--no-analyze" ]))
+                                  ([] if (do_analyze  is None) else (["--analyze" ] if do_analyze  else ["--no-analyze" ]))
 
     # Synthesize the bsub command line and run it.
     # Check to see if one of the LSF envars is set.  If not, we assume we're running in a cron environment (or a similarly impoverished environment), 
