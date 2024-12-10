@@ -45,7 +45,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     else :
         min = min_argument    
 
-    core_command_line = escaped_launcher_script_path
+    core_command_line = '%s --isviacron' % escaped_launcher_script_path
 
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 

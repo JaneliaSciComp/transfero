@@ -10,9 +10,9 @@ from tpt.utilities import *
 from transfero import *
 from turn_off_transfero import *
 
-def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None) :
+def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cron=False) :
     '''
-    Launch Transfero via bsub, with Transfero logging enabled.
+    Launch Transfero via bsub.
     '''
 
     # Load the configuration, based on the user name
@@ -37,7 +37,6 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None) :
         do_log = True
 
     # Figure out the path to the Transfero log file
-    print("do_log: %s" % str(do_log))
     if do_log:
         # Ensure that the Transfero log folder exists
         transfero_logs_folder_path = os.path.join(destination_folder_path, 'transfero-logs') 
@@ -45,22 +44,22 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None) :
 
         # Synthesize Transfero log file name
         today = datetime.datetime.today()
-        simple_date_as_string = today.strftime("%Y-%m-%d")
-        simple_transfero_log_file_name = "transfero-%s.log" % simple_date_as_string
-        simple_transfero_log_file_path = os.path.join(transfero_logs_folder_path, simple_transfero_log_file_name)
-
-        # If a log file for today already exists, add the time on to the log file name        
-        if os.path.exists(simple_transfero_log_file_path):
+        if is_via_cron:
+            # If running via cron, which should only happen once a day, just use the date to name the log file
+            simple_date_as_string = today.strftime("%Y-%m-%d")
+            transfero_log_file_name = "transfero-%s.log" % simple_date_as_string
+            transfero_log_file_path = os.path.join(transfero_logs_folder_path, transfero_log_file_name)
+        else:
+            # If not running via cron, use the date and time to name the log file
             date_and_time_as_string = today.strftime("%Y-%m-%d-%H-%M-%S")
             transfero_log_file_name = "transfero-%s.log" % date_and_time_as_string
             transfero_log_file_path = os.path.join(transfero_logs_folder_path, transfero_log_file_name)
-        else:
-            transfero_log_file_path = simple_transfero_log_file_path            
     else:
         transfero_log_file_path = '/dev/null'
 
     # Synthesize the Transfero arguments
-    transfero_command_line_args = [ ("true" if do_transfer else "false") , ("true" if do_analyze else "false") ]
+    transfero_command_line_args = ([] if (do_transfer is None) else (["--transfer"] if do_transfer else ["--no-transfer"])) + \
+                                  ([] if (do_analyze  is None) else (["--analyze" ] if do_transfer else ["--no-analyze" ]))
 
     # Synthesize the bsub command line and run it.
     # Check to see if one of the LSF envars is set.  If not, we assume we're running in a cron environment (or a similarly impoverished environment), 
@@ -93,38 +92,24 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None) :
         command_line_as_string = "source %s && source %s && %s" % (escaped_lsf_profile_path, escaped_bash_profile_path, bsub_command_line_as_string)
 
         # Execute the command to launch transfero, running in a shell
-        subprocess.run(command_line_as_string, shell=True)
+        subprocess.run(['/bin/bash', '-c', command_line_as_string])  # Want to use regular bash, not bash pretending to be some old shell
 # end def
 
 
 
-def process_tristate_arg_pair(do, nodo, name):
-    if do :
-        if nodo :
-            raise RuntimeError('Arguments --%s and --no-%s are mutually exclusive' % (name, name))
-        else :
-            result = True
-    else :
-        if nodo :
-            result = False
-        else :
-            result = None
-    return result
-    
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Tool for launching Transfero on the cluster")
-    parser.add_argument('--log', dest='log', action='store_true', help='Enable logging')
-    parser.add_argument('--no-log', dest='nolog', action='store_true', help='Disable logging')
-    parser.add_argument('--transfer', dest='transfer', action='store_true', help='Enable transfer of data from rigs')
-    parser.add_argument('--no-transfer', dest='notransfer', action='store_true', help='Disable transfer of data from rigs')
-    parser.add_argument('--analyze', dest='analyze', action='store_true', help='Enable analysis of data')
-    parser.add_argument('--no-analyze', dest='noanalyze', action='store_true', help='Disable analysis of data')
+    parser.add_argument('--isviacron', dest='isviacron', action='store_true', help='Signal that we are running via cron.  Currently only affects log file naming.')
+    parser.add_argument('--log', dest='log', action='store_true', help='Enable *Transfero* logging (different than per-experiment log)')
+    parser.add_argument('--no-log', dest='nolog', action='store_true', help='Disable *Transfero* logging (different than per-experiment log)')
+    parser.add_argument('--transfer', dest='transfer', action='store_true', help='Enable transfer of data from rigs, overriding setting in configuration file')
+    parser.add_argument('--no-transfer', dest='notransfer', action='store_true', help='Disable transfer of data from rigs, overriding setting in configuration file')
+    parser.add_argument('--analyze', dest='analyze', action='store_true', help='Enable analysis of data, overriding setting in configuration file')
+    parser.add_argument('--no-analyze', dest='noanalyze', action='store_true', help='Disable analysis of data, overriding setting in configuration file')
     args = parser.parse_args()
 
     do_log = process_tristate_arg_pair(args.log, args.nolog, 'log')
     do_transfer = process_tristate_arg_pair(args.transfer, args.notransfer, 'transfer')
     do_analyze = process_tristate_arg_pair(args.analyze, args.noanalyze, 'analyze')
 
-    transfero_via_bsub(do_log, do_transfer, do_analyze)
+    transfero_via_bsub(do_log=do_log, do_transfer=do_transfer, do_analyze=do_analyze, is_via_cron=args.isviacron)

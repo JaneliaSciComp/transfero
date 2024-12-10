@@ -9,6 +9,7 @@ import shlex
 import traceback
 import math
 import re
+import argparse
 from tpt.utilities import *
 from tpt.fuster import *
 
@@ -1235,13 +1236,18 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
 
 
 if __name__ == "__main__":
-    if len(sys.argv)==1 :
-        transfero()
-    elif len(sys.argv)==2 :
-        transfero(boolean_from_string(sys.argv[1]))
-    elif len(sys.argv)==3 :
-        transfero(boolean_from_string(sys.argv[1]), boolean_from_string(sys.argv[2]))
-    elif len(sys.argv)==4 :
-        transfero(boolean_from_string(sys.argv[1]), boolean_from_string(sys.argv[2]), sys.argv[3])
-    else:
-        raise RuntimeError('Too many arguments to Transfero')
+    parser = argparse.ArgumentParser(description="Tool for transfering data from rigs and then analyzing")
+    parser.add_argument('--isviacron', dest='isviacron', action='store_true', help='Signal that we are running via cron.  Currently does nothing.')
+    parser.add_argument('--transfer', dest='transfer', action='store_true', help='Enable transfer of data from rigs, overriding setting in configuration file')
+    parser.add_argument('--no-transfer', dest='notransfer', action='store_true', help='Disable transfer of data from rigs, overriding setting in configuration file')
+    parser.add_argument('--analyze', dest='analyze', action='store_true', help='Enable analysis of data, overriding setting in configuration file')
+    parser.add_argument('--no-analyze', dest='noanalyze', action='store_true', help='Disable analysis of data, overriding setting in configuration file')
+    parser.add_argument('--configuration-file', dest='configurationfile', help='Specify configuration file, overriding determination from user name')
+    args = parser.parse_args()
+
+    do_transfer = process_tristate_arg_pair(args.transfer, args.notransfer, 'transfer')
+    do_analyze = process_tristate_arg_pair(args.analyze, args.noanalyze, 'analyze')
+
+    transfero(do_transfer_data_from_rigs_argument=do_transfer, 
+              do_run_analysis_argument=do_analyze, 
+              configuration_or_configuration_file_name=args.configurationfile)

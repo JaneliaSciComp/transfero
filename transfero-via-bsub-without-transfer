@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import subprocess
+
+# Runs the transfero_via_bsub.py script, passing the argument --no-transfer so that only analysis happens.
+this_script_path = os.path.realpath(__file__)
+transfero_folder_path = os.path.dirname(this_script_path)
+transfero_via_bsub_script_path = os.path.join(transfero_folder_path, 'transfero_via_bsub.py')
+command_line_as_list = \
+    [transfero_via_bsub_script_path, '--no-transfer'] + sys.argv[1:]
+subprocess.run(command_line_as_list)
