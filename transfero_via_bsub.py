@@ -10,18 +10,23 @@ from tpt.utilities import *
 from transfero import *
 from turn_off_transfero import *
 
-def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cron=False) :
+def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cron=False, analysis_executable_name=None, configuration_file_name=None) :
     '''
     Launch Transfero via bsub.
     '''
 
-    # Load the configuration, based on the user name
+    # Get the path to the transfero.py script, and the Transfero folder
     this_script_path = os.path.realpath(__file__)
     transfero_folder_path = os.path.dirname(this_script_path)
     transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
-    user_name = get_user_name()
-    configuration_file_name = '%s_configuration.yaml' % user_name
-    configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
+
+    # Load the configuration
+    if configuration_file_name is None:
+        user_name = get_user_name()
+        configuration_file_name = '%s_configuration.yaml' % user_name
+        configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
+    else:
+        configuration_file_path = os.path.realpath(configuration_file_name)
     configuration = read_yaml_file_badly(configuration_file_path)
 
     # Get things we need out of configuration
@@ -55,7 +60,9 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
 
     # Synthesize the Transfero arguments
     transfero_command_line_args = ([] if (do_transfer is None) else (["--transfer"] if do_transfer else ["--no-transfer"])) + \
-                                  ([] if (do_analyze  is None) else (["--analyze" ] if do_analyze  else ["--no-analyze" ]))
+                                  ([] if (do_analyze  is None) else (["--analyze" ] if do_analyze  else ["--no-analyze" ])) + \
+                                  ([] if (analysis_executable_name is None) else ["--analysis-executable", analysis_executable_name]) + \
+                                  ([] if (configuration_file_name is None) else ["--configuration-file", configuration_file_name])
 
     # Synthesize the bsub command line and run it.
     # Check to see if one of the LSF envars is set.  If not, we assume we're running in a cron environment (or a similarly impoverished environment), 
@@ -102,10 +109,17 @@ if __name__ == "__main__":
     parser.add_argument('--no-transfer', dest='notransfer', action='store_true', help='Disable transfer of data from rigs, overriding setting in configuration file')
     parser.add_argument('--analyze', dest='analyze', action='store_true', help='Enable analysis of data, overriding setting in configuration file')
     parser.add_argument('--no-analyze', dest='noanalyze', action='store_true', help='Disable analysis of data, overriding setting in configuration file')
+    parser.add_argument('--analysis-executable', dest='analysisexecutable', help='Specify analysis executable, overriding determination from configuration file')
+    parser.add_argument('--configuration-file', dest='configurationfile', help='Specify configuration file, overriding determination from user name')
     args = parser.parse_args()
 
     do_log = process_tristate_arg_pair(args.log, args.nolog, 'log')
     do_transfer = process_tristate_arg_pair(args.transfer, args.notransfer, 'transfer')
     do_analyze = process_tristate_arg_pair(args.analyze, args.noanalyze, 'analyze')
 
-    transfero_via_bsub(do_log=do_log, do_transfer=do_transfer, do_analyze=do_analyze, is_via_cron=args.isviacron)
+    transfero_via_bsub(do_log=do_log, 
+                       do_transfer=do_transfer, 
+                       do_analyze=do_analyze, 
+                       is_via_cron=args.isviacron, 
+                       analysis_executable_name=args.analysisexecutable, 
+                       configuration_file_name=args.configurationfile)

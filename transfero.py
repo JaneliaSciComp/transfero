@@ -1032,18 +1032,14 @@ def transfero_analyze_experiment_folders(analysis_executable_path, folder_path_f
 
 
 
-def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path):
+def transfero_core(do_transfer_data_from_rigs, do_run_analysis, analysis_executable_path, configuration, transfero_root_folder_path):
     # Unpack the per-lab configuration dict
     cluster_billing_account_name = configuration['cluster_billing_account_name']
     host_name_from_rig_index = configuration['host_name_from_rig_index']
     rig_user_name_from_rig_index = configuration['rig_user_name_from_rig_index'] 
     data_folder_path_from_rig_index = configuration['data_folder_path_from_rig_index'] 
     destination_folder = configuration['destination_folder']     
-    # We support relative paths (relative to this script for analysis exectuables)
-    raw_analysis_executable_path = configuration['analysis_executable_path']
     user_name_for_configuration_purposes = configuration['user_name_for_configuration_purposes']
-    analysis_executable_path = \
-        os.path.realpath(os.path.join(transfero_root_folder_path, raw_analysis_executable_path))
     to_process_folder_name = 'to-process' 
     slots_per_analysis_job = configuration['slots_per_analysis_job']
     maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
@@ -1164,7 +1160,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, t
 
 
 
-def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None):
+def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, analysis_executable_name=None, configuration_or_configuration_file_name=None):
     """
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1189,26 +1185,29 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
         #     configuration = yaml.safe_load(stream)
     elif isinstance(configuration_or_configuration_file_name, str) :
         configuration_file_name = configuration_or_configuration_file_name
-        configuration_file_path = os.path.abspath(configuration_file_name)
+        configuration_file_path = os.path.realpath(configuration_file_name)
         configuration = read_yaml_file_badly(configuration_file_path)
         # with open(configuration_file_path, 'r') as stream:
         #     configuration = yaml.safe_load(stream)
     else:
         configuration = configuration_or_configuration_file_name
 
-    # Unpack the per-lab configuration dict
-    cluster_billing_account_name = configuration['cluster_billing_account_name']
-    host_name_from_rig_index = configuration['host_name_from_rig_index']
-    rig_user_name_from_rig_index = configuration['rig_user_name_from_rig_index'] 
-    data_folder_path_from_rig_index = configuration['data_folder_path_from_rig_index'] 
-    destination_folder = configuration['destination_folder']     
-    # We support relative paths (relative to this script for analysis exectuables)
-    raw_analysis_executable_path = configuration['analysis_executable_path']
-    analysis_executable_path = \
-        os.path.realpath(os.path.join(transfero_root_folder_path, raw_analysis_executable_path))
-    to_process_folder_name = 'to-process' 
-    slots_per_analysis_job = configuration['slots_per_analysis_job']
-    maximum_analysis_slot_count = configuration['maximum_analysis_slot_count']
+    # Determine the canonical path to the analysis executable 
+    if analysis_executable_name is None:
+        # If the analysis executable file name is not given as an argument, 
+        # Read it from the configuration file.  Interpret a relative path as 
+        # being relative to the Transfero root folder.
+        raw_analysis_executable_path = configuration['analysis_executable_path']
+        if os.path.isabs(raw_analysis_executable_path):
+            half_baked_analysis_executable_path = raw_analysis_executable_path
+        else:
+            half_baked_analysis_executable_path = os.path.join(transfero_root_folder_path, 
+                                                               raw_analysis_executable_path)
+    else:
+        # If the analysis executable file name is given as an argument, 
+        # interpret it in the usual way
+        half_baked_analysis_executable_path = analysis_executable_name
+    analysis_executable_path = os.path.realpath(half_baked_analysis_executable_path)
 
     # Figure out what stages to run
     if do_transfer_data_from_rigs_argument is None :
@@ -1221,11 +1220,12 @@ def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument
         do_run_analysis = do_run_analysis_argument
 
     # Don't want to run if transfero is already running, so check for lock file
+    destination_folder = configuration['destination_folder']     
     lock_file_path = os.path.join(destination_folder, 'transfero.lock')
     with LockFile(lock_file_path) as lock :
         if lock.have_lock() :
             (relative_path_from_synched_experiment_folder_index, job_status_from_experiment_index) = \
-                transfero_core(do_transfer_data_from_rigs, do_run_analysis, configuration, transfero_root_folder_path)
+                transfero_core(do_transfer_data_from_rigs, do_run_analysis, analysis_executable_path, configuration, transfero_root_folder_path)
         else :
             raise RuntimeError('Lock file %s already exists.  Exiting.' % lock_file_path)
 
@@ -1242,6 +1242,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-transfer', dest='notransfer', action='store_true', help='Disable transfer of data from rigs, overriding setting in configuration file')
     parser.add_argument('--analyze', dest='analyze', action='store_true', help='Enable analysis of data, overriding setting in configuration file')
     parser.add_argument('--no-analyze', dest='noanalyze', action='store_true', help='Disable analysis of data, overriding setting in configuration file')
+    parser.add_argument('--analysis-executable', dest='analysisexecutable', help='Specify analysis executable, overriding determination from configuration file')
     parser.add_argument('--configuration-file', dest='configurationfile', help='Specify configuration file, overriding determination from user name')
     args = parser.parse_args()
 
@@ -1250,4 +1251,5 @@ if __name__ == "__main__":
 
     transfero(do_transfer_data_from_rigs_argument=do_transfer, 
               do_run_analysis_argument=do_analyze, 
+              analysis_executable_name=args.analysisexecutable,
               configuration_or_configuration_file_name=args.configurationfile)

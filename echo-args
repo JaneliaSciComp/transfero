@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+import sys
+
+args = sys.argv
+arg_count = len(args)
+for i in range(arg_count):
+     print("args[%d]: '%s'" % (i, args[i]))
+        
