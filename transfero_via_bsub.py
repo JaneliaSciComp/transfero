@@ -10,7 +10,7 @@ from tpt.utilities import *
 from transfero import *
 from turn_off_transfero import *
 
-def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cron=False, analysis_executable_name=None, configuration_file_name=None) :
+def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cron=False, analysis_executable_name=None, manual_configuration_file_name=None) :
     '''
     Launch Transfero via bsub.
     '''
@@ -21,11 +21,13 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
     transfero_script_path = os.path.join(transfero_folder_path, 'transfero.py')
 
     # Load the configuration
-    if configuration_file_name is None:
+    if manual_configuration_file_name is None:
         user_name = get_user_name()
-        configuration_file_name = '%s_configuration.yaml' % user_name
+        configuration_file_name = '%s_configuration.yaml' % user_name  
+            # Don't want to overwrite configuration_file_name passed in by caller
         configuration_file_path = os.path.join(transfero_folder_path, configuration_file_name)
     else:
+        configuration_file_name = manual_configuration_file_name
         configuration_file_path = os.path.realpath(configuration_file_name)
     configuration = read_yaml_file_badly(configuration_file_path)
 
@@ -62,7 +64,7 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
     transfero_command_line_args = ([] if (do_transfer is None) else (["--transfer"] if do_transfer else ["--no-transfer"])) + \
                                   ([] if (do_analyze  is None) else (["--analyze" ] if do_analyze  else ["--no-analyze" ])) + \
                                   ([] if (analysis_executable_name is None) else ["--analysis-executable", analysis_executable_name]) + \
-                                  ([] if (configuration_file_name is None) else ["--configuration-file", configuration_file_name])
+                                  ([] if (manual_configuration_file_name is None) else ["--configuration-file", manual_configuration_file_name])
 
     # Synthesize the bsub command line and run it.
     # Check to see if one of the LSF envars is set.  If not, we assume we're running in a cron environment (or a similarly impoverished environment), 
@@ -122,4 +124,4 @@ if __name__ == "__main__":
                        do_analyze=do_analyze, 
                        is_via_cron=args.isviacron, 
                        analysis_executable_name=args.analysisexecutable, 
-                       configuration_file_name=args.configurationfile)
+                       manual_configuration_file_name=args.configurationfile)
