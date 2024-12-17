@@ -33,7 +33,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     configuration = read_yaml_file_badly(configuration_file_path)
     
     # Get the path to the executable we want crontab to run
-    launcher_script_path = os.path.join(transfero_folder_path, 'transfero_via_bsub.py') 
+    launcher_script_path = os.path.join(transfero_folder_path, 'transfero_via_bsub_via_cron.bash') 
     escaped_launcher_script_path = shlex.quote(launcher_script_path) 
     
     if hr_argument is None :
@@ -45,7 +45,7 @@ def turn_on_transfero(hr_argument=None, min_argument=None) :
     else :
         min = min_argument    
 
-    core_command_line = '%s --isviacron' % escaped_launcher_script_path
+    core_command_line = escaped_launcher_script_path
 
     hash_transfero = '#TRANSFERO' 
     escaped_hash_transfero = shlex.quote(hash_transfero) 

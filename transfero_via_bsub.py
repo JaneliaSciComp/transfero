@@ -67,37 +67,13 @@ def transfero_via_bsub(do_log=None, do_transfer=None, do_analyze=None, is_via_cr
                                   ([] if (manual_configuration_file_name is None) else ["--configuration-file", manual_configuration_file_name])
 
     # Synthesize the bsub command line and run it.
-    # Check to see if one of the LSF envars is set.  If not, we assume we're running in a cron environment (or a similarly impoverished environment), 
-    # and need to source a few files before running bsub.
-    if 'LSF_BINDIR' in os.environ:
-        # Synthesize the bsub command line as a list, and skip escaping
-        bsub_command_line_as_list = \
-            [ 'bsub', '-n', '1', '-P', cluster_billing_account_name, '-o', transfero_log_file_path, '-e', transfero_log_file_path, transfero_script_path] + transfero_command_line_args
-        # Execute the command to launch transfero
-        subprocess.run(bsub_command_line_as_list)
-    else:
-        # Impoverished (e.g. cron) environment
-
-        # Get the path to the LSF profile 
-        lsf_profile_path = '/misc/lsf/conf/profile.lsf'
-        escaped_lsf_profile_path = shlex.quote(lsf_profile_path)
-
-        # Get the path to the user's bash profile
-        home_folder_path = os.getenv('HOME') 
-        bash_profile_path = os.path.join(home_folder_path, '.bash_profile') 
-        escaped_bash_profile_path = shlex.quote(bash_profile_path) 
-
-        # Synthesize the bsub command line as a list, with escaping
-        escaped_transfero_log_file_path = shlex.quote(transfero_log_file_path)
-        escaped_transfero_script_path = shlex.quote(transfero_script_path)
-        escaped_transfero_args = [ shlex.quote(arg) for arg in transfero_command_line_args ]
-        bsub_command_line_as_list = \
-            [ 'bsub', '-n', '1', '-P', cluster_billing_account_name, '-o', escaped_transfero_log_file_path, '-e', escaped_transfero_log_file_path, escaped_transfero_script_path ] + escaped_transfero_args
-        bsub_command_line_as_string = space_out(bsub_command_line_as_list)
-        command_line_as_string = "source %s && source %s && %s" % (escaped_lsf_profile_path, escaped_bash_profile_path, bsub_command_line_as_string)
-
-        # Execute the command to launch transfero, running in a shell
-        subprocess.run(['/bin/bash', '-c', command_line_as_string])  # Want to use regular bash, not bash pretending to be some old shell
+    # We assume that /misc/lsf/conf/profile.lsf has been sourced in the parent process, so that bsub etc are on the path, and
+    # the LSF_* envars have been set.
+    # Synthesize the bsub command line as a list, and skip escaping
+    bsub_command_line_as_list = \
+        [ 'bsub', '-n', '1', '-P', cluster_billing_account_name, '-o', transfero_log_file_path, '-e', transfero_log_file_path, transfero_script_path] + transfero_command_line_args
+    # Execute the command to launch transfero
+    subprocess.run(bsub_command_line_as_list)
 # end def
 
 
