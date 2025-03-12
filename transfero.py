@@ -1160,7 +1160,7 @@ def transfero_core(do_transfer_data_from_rigs, do_run_analysis, analysis_executa
 
 
 
-def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, analysis_executable_name=None, configuration_or_configuration_file_name=None):
+def transfero(do_transfer_data_from_rigs_argument=None, do_run_analysis_argument=None, configuration_or_configuration_file_name=None, analysis_executable_name=None):
     """
     TRANSFERO Transfer experiment folders from rig computers and analyze them.
        transfero() transfers experiment folders from the specified rig
@@ -1251,5 +1251,5 @@ if __name__ == "__main__":
 
     transfero(do_transfer_data_from_rigs_argument=do_transfer, 
               do_run_analysis_argument=do_analyze, 
-              analysis_executable_name=args.analysisexecutable,
-              configuration_or_configuration_file_name=args.configurationfile)
+              configuration_or_configuration_file_name=args.configurationfile, 
+              analysis_executable_name=args.analysisexecutable)

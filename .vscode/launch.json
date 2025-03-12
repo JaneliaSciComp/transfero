@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
@@ -14,7 +14,7 @@
         },
         {
             "name": "test_transfero_on_rubin_rig_flybubble_ww1.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "test_transfero_on_rubin_rig_flybubble_ww1.py",
             "console": "integratedTerminal",
@@ -22,7 +22,7 @@
         },
         {
             "name": "test_transfero_on_rubin_rig_flybubble_ww2.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "test_transfero_on_rubin_rig_flybubble_ww2.py",
             "console": "integratedTerminal",
@@ -30,7 +30,7 @@
         },
         {
             "name": "test_transfero_on_branson_rig.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "test_transfero_on_branson_rig.py",
             "console": "integratedTerminal",
@@ -38,7 +38,7 @@
         },
         {
             "name": "test_transfero_on_aso_rig.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "test_transfero_on_aso_rig.py",
             "console": "integratedTerminal",
@@ -46,7 +46,7 @@
         },
         {
             "name": "turn_on_transfero.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "turn_on_transfero.py",
             "console": "integratedTerminal",
@@ -54,7 +54,7 @@
         },
         {
             "name": "turn_off_transfero.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "turn_off_transfero.py",
             "console": "integratedTerminal",
@@ -62,9 +62,17 @@
         },
         {
             "name": "fuster.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "fuster.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "test_transfero_on_otopaliklab_ww6.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "test_transfero_on_otopaliklab_ww6.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }
