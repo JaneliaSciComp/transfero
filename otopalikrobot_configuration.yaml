@@ -7,7 +7,7 @@ log_file_name: 'flydisco-analysis-log.txt'
 user_name_for_configuration_purposes: 'otopalikrobot'
 analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
   # this is interpreted relative to folder containing transfero.py
-slots_per_analysis_job: 4
+slots_per_analysis_job: 8
 maximum_analysis_slot_count: 400
 do_retry_failed_analysis: False
 do_transfer_data_from_rigs: True
