@@ -1,7 +1,7 @@
 cluster_billing_account_name: 'genie'
 host_name_from_rig_index: [ 'flybowl-ww1.hhmi.org' ]
 rig_user_name_from_rig_index: [ 'labadmin' ]
-data_folder_path_from_rig_index: [ '/cygdrive/e/flydisco_data/genie' ]
+data_folder_path_from_rig_index: [ '/cygdrive/d/flydisco_data/genie' ]
 destination_folder: '/groups/genie/genie/flydisco_data'
 log_file_name: 'flydisco-analysis-log.txt'
 user_name_for_configuration_purposes: 'geniegeneric'
