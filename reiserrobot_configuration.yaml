@@ -1,0 +1,16 @@
+cluster_billing_account_name: 'reiser'
+host_name_from_rig_index: [ 'reiserlab-ww13.hhmi.org' ]
+rig_user_name_from_rig_index: [ 'reiserlab-ww13+localreiserrobot' ]
+data_folder_path_from_rig_index: [ '/cygdrive/d/flydisco_data' ]
+destination_folder: '/groups/reiser/reiserlab/flydisco_data'
+log_file_name: 'flydisco-analysis-log.txt'
+user_name_for_configuration_purposes: 'reiserrobot'
+analysis_executable_path: '../FlyDiscoAnalysis/transfero_FlyDiscoPipeline_wrapper_wrapper.py'  
+  # this is interpreted relative to folder containing transfero.py
+slots_per_analysis_job: 4
+maximum_analysis_slot_count: 400
+do_retry_failed_analysis: False
+do_transfer_data_from_rigs: True
+do_run_analysis: True
+launch_hour: 22
+launch_minute: 0
