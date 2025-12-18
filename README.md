@@ -13,8 +13,8 @@ enabled.)
 Requires Python >=3.6.  (The system Python in Oracle Linux 8.4 works.)
 
 
-How to set up a new Transfero instance
---------------------------------------
+How to set up a Transfero instance for a new lab
+------------------------------------------------
 
 1. Have the Systems groups set up a "robot" user for the lab.
 E.g. `wilsonrobot` might be the robot user for the Wilson Lab.  Have
@@ -79,14 +79,27 @@ Set that up appropriately.
 15. Edit the `copy_into_production.py` file, adding a new
 e.g. wilsonrobot entry to the `username_from_user_index` list.
 
-16. Commit your changes, push, then run the `copy_into_production.py`
-script.
+16. Commit your changes, push, tag it, then run the
+`copy_into_production.py` script.
 
+17. If you're setting up Transfero to launch FlyDiscoAnalysis, update
+the `copy_into_production.py` file for FlyDiscoAnalysis.
 
+18. If you're setting up Transfero to launch FlyDiscoAnalysis, create
+a new e.g. wilsonrobot_configuration.m in the FDA repo, and set the
+fields appropriately.
 
+19. If you're setting up Transfero to launch FlyDiscoAnalysis, commit,
+tag, and push the updated FDA repo.
 
+20. If you're setting up Transfero to launch FlyDiscoAnalysis, run the
+`copy_into_production.py` script for it.
 
+21. On submit, as e.g. wilsonrobot, run the
+`transfero/turn_on_transfero.py` script to set up the cron job to run
+at 10 pm every evening.
 
+That should do it.
 
 
 
