@@ -127,20 +127,42 @@ def copy_file_from_remote(source_user, source_host, source_path, dest_path) :
 
 
 
+def find_natural_number_in_token_list(tokens: list[str], n: int = 0) -> int | None:
+    """
+    Search through a list of strings starting at index n,
+    returning the index of the first string that represents a natural number.
+    
+    Args:
+        strings: List of strings to search through
+        n: Starting index (default 0)
+    
+    Returns:
+        The index of the natural number found, or None if no natural number is found
+    """
+    for i in range(n, len(tokens)):
+        s = tokens[i]
+        if s.isdigit():
+            return i
+    return None
+
+
+
 def extract_name_size_and_type_from_ls_long_line(line) :
     # We assume line looks like this: '-rw-r--r--  1 taylora scicompsoft     278 2020-12-02 17:09:49.027303272 -0500 "test_bw_smooth.m"'
     tokens = line.split()
-    size_in_bytes = int(tokens[4]) 
+    # Sometimes the group name can have spaces in it (sigh), so we search for the next token that represents a natural number.
+    index_of_size_in_bytes = find_natural_number_in_token_list(tokens, 4)
+    size_in_bytes = int(tokens[index_of_size_in_bytes]) 
     parts = line.split('"') 
     name = parts[1] 
     file_type_char = line[0] 
     is_file = (file_type_char == '-')
     is_dir =  (file_type_char == 'd')
     is_link = (file_type_char == 'l')
-    mod_date_as_string = tokens[5] 
-    mod_time_as_string_with_ns = tokens[6] 
+    mod_date_as_string = tokens[index_of_size_in_bytes+1] 
+    mod_time_as_string_with_ns = tokens[index_of_size_in_bytes+2] 
     mod_time_as_string = mod_time_as_string_with_ns[0:15]   # only out to ms
-    utc_offset_as_string = tokens[7] 
+    utc_offset_as_string = tokens[index_of_size_in_bytes+3] 
     mod_time_as_string = mod_date_as_string + ' ' + mod_time_as_string + ' ' + utc_offset_as_string   # date, time
     time_format = "%Y-%m-%d %H:%M:%S.%f %z"
     mod_time = datetime.datetime.strptime(mod_time_as_string, time_format)  # aware datetime, expressed in local timezone
