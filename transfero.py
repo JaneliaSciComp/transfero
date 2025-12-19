@@ -127,13 +127,13 @@ def copy_file_from_remote(source_user, source_host, source_path, dest_path) :
 
 
 
-def find_natural_number_in_token_list(tokens: list[str], n: int = 0) -> int | None:
+def find_natural_number_in_token_list(tokens, n=0):
     """
     Search through a list of strings starting at index n,
     returning the index of the first string that represents a natural number.
     
     Args:
-        strings: List of strings to search through
+        tokens: List of strings to search through
         n: Starting index (default 0)
     
     Returns:
