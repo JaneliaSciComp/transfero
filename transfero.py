@@ -346,14 +346,27 @@ def add_links_to_to_process_folder(destination_folder, to_process_folder_name, r
     Both to_process_folder_name and each relative path in relative_path_from_experiment_folder_index are taken to be relative
     to destination_folder, which should be an absolute path.
     """
-    to_process_folder_path = os.path.join(destination_folder, to_process_folder_name) 
+    to_process_folder_path = os.path.join(destination_folder, to_process_folder_name)
     os.makedirs(to_process_folder_path, exist_ok=True)  # Create the to_process folder if it doesn't exist
-    experiment_folder_relative_path_count = len(relative_path_from_experiment_folder_index) 
+    experiment_folder_relative_path_count = len(relative_path_from_experiment_folder_index)
     for i in range(experiment_folder_relative_path_count) :
-        experiment_folder_relative_path = relative_path_from_experiment_folder_index[i] 
-        experiment_folder_absolute_path = os.path.join(destination_folder, experiment_folder_relative_path) 
-        command_line = [ '/bin/ln', '-s', experiment_folder_absolute_path, to_process_folder_path ]
-        run_subprocess_live(command_line) 
+        experiment_folder_relative_path = relative_path_from_experiment_folder_index[i]
+        experiment_folder_absolute_path = os.path.join(destination_folder, experiment_folder_relative_path)
+        basename = os.path.basename(experiment_folder_absolute_path)
+        link_path = os.path.join(to_process_folder_path, basename)
+        # Use lexists() instead of exists() so that broken symlinks are detected as collisions
+        if not os.path.lexists(link_path) :
+            os.symlink(experiment_folder_absolute_path, link_path)
+        else :
+            created = False
+            for suffix_num in range(2, 100) :
+                candidate_link_name = os.path.join(to_process_folder_path, f"{basename}-{suffix_num:02d}")
+                if not os.path.lexists(candidate_link_name) :
+                    os.symlink(experiment_folder_absolute_path, candidate_link_name)
+                    created = True
+                    break
+            if not created :
+                print(f"Warning: could not create a link in the to-process/ folder for {experiment_folder_absolute_path}")
 
 
 
