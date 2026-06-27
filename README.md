@@ -30,9 +30,9 @@ the existing `*_configuration.yaml` files as a template.
 Otherwise, create a e.g. `localwilsonrobot` user, and add it to the
 Administrators group.
 
-4. Login as the user from step 3.
+4. Login as the user from step 3 using Remote Desktop Connection.
 
-5. Install cygwin.  Add openssh, emacs packages.
+5. Install cygwin.  Add openssh, rsync, emacs packages.
 
 6. Start a cygwin terminal with ”Run as Administrator”
 
@@ -71,31 +71,38 @@ uncomment it if needed.  Make it so it reads:
 PasswordAuthentication no
 ```
 
-14. Back on your normal workstation, find your local transfero repo or
+14.  In the sygwin Administrator terminal, do:
+```
+cygrunsrv --stop cygsshd
+cygrunsrv --start cygsshd
+```
+To restart the ssh server with passwordful login turned off.
+
+15. Back on your normal workstation, find your local transfero repo or
 clone a fresh copy.  Create a e.g. wilsonrobot_configuration.yaml,
 using one of the existing `*_configuration.yaml` files as a template.
 Set that up appropriately.
 
-15. Edit the `copy_into_production.py` file, adding a new
+16. Edit the `copy_into_production.py` file, adding a new
 e.g. wilsonrobot entry to the `username_from_user_index` list.
 
-16. Commit your changes, push, tag it, then run the
+17. Commit your changes, push, tag it, then run the
 `copy_into_production.py` script.
 
-17. If you're setting up Transfero to launch FlyDiscoAnalysis, update
+18. If you're setting up Transfero to launch FlyDiscoAnalysis, update
 the `copy_into_production.py` file for FlyDiscoAnalysis.
 
-18. If you're setting up Transfero to launch FlyDiscoAnalysis, create
+19. If you're setting up Transfero to launch FlyDiscoAnalysis, create
 a new e.g. wilsonrobot_configuration.m in the FDA repo, and set the
 fields appropriately.
 
-19. If you're setting up Transfero to launch FlyDiscoAnalysis, commit,
+20. If you're setting up Transfero to launch FlyDiscoAnalysis, commit,
 tag, and push the updated FDA repo.
 
-20. If you're setting up Transfero to launch FlyDiscoAnalysis, run the
+21. If you're setting up Transfero to launch FlyDiscoAnalysis, run the
 `copy_into_production.py` script for it.
 
-21. On submit, as e.g. wilsonrobot, run the
+22. On submit, as e.g. wilsonrobot, run the
 `transfero/turn_on_transfero.py` script to set up the cron job to run
 at 10 pm every evening.
 
